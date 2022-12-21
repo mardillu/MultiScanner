@@ -1,2 +1,2 @@
-include ':app'
-rootProject.name = "CameraX Demo"
+include ':app', ":multiscanner"
+rootProject.name = "MultiScanner"
