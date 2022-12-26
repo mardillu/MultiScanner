@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/Theme.AppCompat"
+    android:background="@color/white"
     tools:context=".ui.fingerprint.FingerprintScanner">
 
     <ImageView
@@ -69,6 +70,19 @@
 
     </RelativeLayout>
 
+    <TextView
+        android:id="@+id/secondary_prompt_head"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:textStyle="bold"
+        android:layout_marginHorizontal="40dp"
+        android:textColor="#FF4B55"
+        android:layout_below="@+id/layout_finger"
+        android:text="Press the centre of your right thumb on the sensor, then" />
+
     <com.mackhartley.roundedprogressbar.RoundedProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="match_parent"
@@ -81,8 +95,9 @@
         app:rpbTextPadding="12dp"
         app:rpbProgress="100"
         app:rpbTextSize="14sp"
+        android:layout_marginTop="18dp"
         android:layout_marginHorizontal="40dp"
-        android:layout_below="@+id/layout_finger"/>
+        android:layout_below="@+id/secondary_prompt_head"/>
 
     <LinearLayout
         android:id="@+id/layout_prompts"
@@ -94,14 +109,25 @@
         android:layout_marginTop="20dp">
 
         <TextView
+            android:id="@+id/status_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal"
+            android:textStyle="bold"
+            android:textColor="#FF4B55"
+            android:text="Scan failed. Try again" />
+
+        <TextView
             android:id="@+id/prompt_sub_body"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:gravity="center"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
             android:textStyle="bold"
+            android:layout_marginTop="10dp"
             android:text="Press the centre of your right thumb on the sensor, then lift it off when the progress turns green"/>
     </LinearLayout>
 

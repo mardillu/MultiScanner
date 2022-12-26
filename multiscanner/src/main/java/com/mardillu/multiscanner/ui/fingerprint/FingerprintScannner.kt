@@ -3,9 +3,10 @@ package com.mardillu.multiscanner.ui.fingerprint
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.mardillu.multiscanner.R
 import com.mardillu.multiscanner.databinding.ActivityFingerScannerBinding
 import com.mardillu.multiscanner.utils.*
 import com.mx.finger.alg.MxISOFingerAlg
@@ -93,7 +94,7 @@ class FingerprintScanner : AppCompatActivity() {
                 val result =
                     mxMscBigFingerApi.getFingerImageBig(TIME_OUT)
                 if (!result.isSuccess) {
-                    showToast(
+                    showErrorToast(
                         """
                                 Scan failed. 
                                 Try again
@@ -114,14 +115,14 @@ class FingerprintScanner : AppCompatActivity() {
                         lfdDetectResult
                     )
                     if (i != 0) {
-                        showToast(
+                        showErrorToast(
                             "LFD Error. Try again",
                         )
                         enrolFinger(index)
                         return@execute
                     }
                     /*result 1 mean real finger*/if (lfdDetectResult[0] == 0) {
-                        showToast(
+                        showErrorToast(
                             "LFD Error, no finger detected. Try again",
                         )
                         enrolFinger(index)
@@ -132,7 +133,7 @@ class FingerprintScanner : AppCompatActivity() {
                     mxFingerAlg.getQualityScore(image.data, image.width, image.height)
                 updateProgress(qualityScore.toDouble())
                 if (qualityScore < 70) {
-                    showToast(
+                    showErrorToast(
                         "Quality too low. Scan again",
                     )
                     enrolFinger(index)
@@ -150,16 +151,21 @@ class FingerprintScanner : AppCompatActivity() {
                         image.height
                     )
                 if (featureBufferEnroll[index] == null) {
-                    showToast(
-                        "Enrollment failed ",
+                    showErrorToast(
+                        "Enrollment failed. Try again",
                     )
+                    enrolFinger(index)
+                    return@execute
                 } else {
-                    showToast(
-                        "Enrollment successful ",
-                    )
                     if (index == 0) {
+                        showSuccessToast(
+                            "Right thumb captured successfully",
+                        )
                         enrolFinger(1)
                     } else {
+                        showSuccessToast(
+                            "Enrollment complete",
+                        )
                         enableActionButton()
                     }
                 }
@@ -183,7 +189,7 @@ class FingerprintScanner : AppCompatActivity() {
                 val result =
                     mxMscBigFingerApi.getFingerImageBig(TIME_OUT)
                 if (!result.isSuccess) {
-                    showToast(
+                    showErrorToast(
                         """
                                 Scan failed. 
                                 Try again
@@ -205,14 +211,14 @@ class FingerprintScanner : AppCompatActivity() {
                         lfdDetectResult
                     )
                     if (i != 0) {
-                        showToast(
+                        showErrorToast(
                             "LFD Error, try again",
                         )
                         matchFinger(true)
                         return@execute
                     }
                     /*result 1 mean real finger*/if (lfdDetectResult[0] == 0) {
-                        showToast(
+                        showErrorToast(
                             "LFD Error, no finger detected. Try again",
                             )
                         matchFinger(true)
@@ -223,7 +229,7 @@ class FingerprintScanner : AppCompatActivity() {
                     mxFingerAlg.getQualityScore(image.data, image.width, image.height)
                 updateProgress(qualityScore.toDouble())
                 if (qualityScore < 70) {
-                    showToast(
+                    showErrorToast(
                         "Quality too low. Scan again",
                     )
                     matchFinger(true)
@@ -240,7 +246,7 @@ class FingerprintScanner : AppCompatActivity() {
                         image.height
                     )
                 if (featureBufferMatch == null) {
-                    showToast(
+                    showErrorToast(
                         "Extract failed. Try again",
                     )
                     matchFinger(true)
@@ -252,12 +258,12 @@ class FingerprintScanner : AppCompatActivity() {
                 val match2 =
                     mxFingerAlg.match(featureBufferEnroll[1]!!, featureBufferMatch!!, 3)
                 if (match == 0 || match2 == 0) {
-                    showToast(
+                    showSuccessToast(
                         "Fingerprint matched found",
                     )
                     enableActionButton()
                 } else {
-                    showToast(
+                    showErrorToast(
                         "Match failed. Try again",
                     )
                     matchFinger(true)
@@ -285,13 +291,29 @@ class FingerprintScanner : AppCompatActivity() {
         }
     }
     
-    private fun showToast(message: String){
+    private fun showErrorToast(message: String){
         runOnUiThread {
-            Toast.makeText(this@FingerprintScanner,
-                message,
-                Toast.LENGTH_LONG
-            ).show()
+            binding.statusMessage.setTextColor(resources.getColor(R.color.errorRed))
+            binding.statusMessage.text = message
         }
+    }
+
+    private fun showSuccessToast(message: String){
+        runOnUiThread {
+            binding.statusMessage.setTextColor(resources.getColor(R.color.greenPrimary))
+            binding.statusMessage.text = message
+        }
+
+        //success messages should not stay too long onn the screen because they can potentially give a false impression after a while
+        //So we remove them after 4 secs of showing them
+        val timer = object: CountDownTimer(4000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {}
+
+            override fun onFinish() {
+                showErrorToast("")
+            }
+        }
+        timer.start()
     }
 
     private fun updateProgress(perc: Double = 0.0){
@@ -316,6 +338,7 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.promptBody.text = "Scan farmer thumb to enrol fingerprint"
             binding.promptHead.text = "Scan RIGHT thumb"
+            binding.secondaryPromptHead.text = "Scan RIGHT thumb..."
         }
     }
 
@@ -323,6 +346,7 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.promptBody.text = "Scan farmer thumb to enrol fingerprint"
             binding.promptHead.text = "Scan LEFT thumb"
+            binding.secondaryPromptHead.text = "Scan LEFT thumb..."
         }
     }
 
@@ -330,6 +354,7 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.promptBody.text = "Scan farmer thumb to verify farmer"
             binding.promptHead.text = "Scan farmer thumb"
+            binding.secondaryPromptHead.text = "Scan farmer thumb"
         }
     }
 
