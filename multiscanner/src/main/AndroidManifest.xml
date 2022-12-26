@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         tools:ignore="LockedOrientationActivity"
         android:hardwareAccelerated="true"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        android:theme="@style/Theme.ScannerTheme">
         <activity
             android:name=".ui.camera.OpticalScanner"
             android:screenOrientation="portrait"
