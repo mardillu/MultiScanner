@@ -28,7 +28,7 @@
         <activity
             android:name=".ui.fingerprint.FingerprintScanner"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat"
+            android:theme="@style/Theme.ScannerTheme"
             android:exported="false">
         </activity>
     </application>
