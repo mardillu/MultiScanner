@@ -302,18 +302,18 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.statusMessage.setTextColor(resources.getColor(R.color.greenPrimary))
             binding.statusMessage.text = message
-        }
 
-        //success messages should not stay too long onn the screen because they can potentially give a false impression after a while
-        //So we remove them after 4 secs of showing them
-        val timer = object: CountDownTimer(4000, 1000) {
-            override fun onTick(millisUntilFinished: Long) {}
+            //success messages should not stay too long onn the screen because they can potentially give a false impression after a while
+            //So we remove them after 4 secs of showing them
+            val timer = object: CountDownTimer(4000, 1000) {
+                override fun onTick(millisUntilFinished: Long) {}
 
-            override fun onFinish() {
-                showErrorToast("")
+                override fun onFinish() {
+                    showErrorToast("")
+                }
             }
+            timer.start()
         }
-        timer.start()
     }
 
     private fun updateProgress(perc: Double = 0.0){
@@ -338,6 +338,7 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.promptBody.text = "Scan farmer thumb to enrol fingerprint"
             binding.promptHead.text = "Scan RIGHT thumb"
+            binding.promptSubBody.text = "Press the centre of your RIGHT thumb on the sensor, then lift it off when the progress turns green"
             binding.secondaryPromptHead.text = "Scan RIGHT thumb..."
         }
     }
@@ -346,6 +347,7 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.promptBody.text = "Scan farmer thumb to enrol fingerprint"
             binding.promptHead.text = "Scan LEFT thumb"
+            binding.promptSubBody.text = "Press the centre of your LEFT thumb on the sensor, then lift it off when the progress turns green"
             binding.secondaryPromptHead.text = "Scan LEFT thumb..."
         }
     }
@@ -354,6 +356,7 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.promptBody.text = "Scan farmer thumb to verify farmer"
             binding.promptHead.text = "Scan farmer thumb"
+            binding.promptSubBody.text = "Press the centre of your thumb on the sensor, then lift it off when the progress turns green"
             binding.secondaryPromptHead.text = "Scan farmer thumb"
         }
     }

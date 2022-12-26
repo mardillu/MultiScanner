@@ -72,16 +72,15 @@
 
     <TextView
         android:id="@+id/secondary_prompt_head"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="14sp"
         android:gravity="center"
         android:layout_gravity="center_horizontal"
         android:textStyle="bold"
         android:layout_marginHorizontal="40dp"
-        android:textColor="#FF4B55"
         android:layout_below="@+id/layout_finger"
-        android:text="Press the centre of your right thumb on the sensor, then" />
+        android:text="" />
 
     <com.mackhartley.roundedprogressbar.RoundedProgressBar
         android:id="@+id/progress_bar"
@@ -117,7 +116,7 @@
             android:layout_gravity="center_horizontal"
             android:textStyle="bold"
             android:textColor="#FF4B55"
-            android:text="Scan failed. Try again" />
+            android:text="" />
 
         <TextView
             android:id="@+id/prompt_sub_body"
