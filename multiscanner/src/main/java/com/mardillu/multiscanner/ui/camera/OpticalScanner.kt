@@ -47,7 +47,7 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
             finish()
         }
 
-        binding.cameraView.filter = MultiFilter(Filters.BLACK_AND_WHITE.newInstance(), Filters.CONTRAST.newInstance(),)
+        //binding.cameraView.filter = MultiFilter(Filters.BLACK_AND_WHITE.newInstance(), Filters.CONTRAST.newInstance(),)
 
         when (intent.getIntExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_BARCODE)) {
             SCAN_TYPE_BARCODE,
@@ -148,8 +148,9 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
 
     private fun confirmAndFinish() {
         val intent = Intent()
+        val kgString = binding.textResult.text.toString().replace("Kg","")
         intent.putExtra(EXTRA_OCR_IMAGE_LOCATION, ocrImageName)
-        intent.putExtra(EXTRA_OCR_SCAN_RESULT, binding.textResult.text.toString().replace("Kg",""))
+        intent.putExtra(EXTRA_OCR_SCAN_RESULT, kgString.toDouble().div(100.0).toString())
         setResult(RESULT_SCAN_SUCCESS, intent)
 
         finish()

@@ -1,6 +1,7 @@
 package com.mardillu.multiscanner.ui.camera
 
 import android.content.Context
+import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.ImageFormat.YUV_420_888
@@ -27,7 +28,12 @@ import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgcodecs.Imgcodecs.IMREAD_COLOR
 import org.opencv.imgproc.Imgproc
+import org.tensorflow.lite.Interpreter
+import java.io.FileInputStream
+import java.io.IOException
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.channels.FileChannel
 
 
 /**
@@ -74,16 +80,16 @@ class CameraFrameProcessors {
     }
 
     class OCRProcessor(context: Context, listener: OCRListener? = null) : FrameProcessor {
+        private val c = context
         private val listeners = ArrayList<OCRListener>().apply { listener?.let { add(it) } }
         private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        private val c = context
 
         @WorkerThread
         override fun process(frame: Frame) {
             Log.d("TAG", "analyze BEFORE: ${frame.size.height}")
             val image = if (frame.dataClass === Image::class.java) {
-                InputImage.fromBitmap(erodeImage(createInvertedBlackAndWhite(yuv420ToBitmap((frame.getData() as Image), c))),
-                        frame.rotationToUser)
+               //InputImage.fromMediaImage(frame.getData(), frame.rotationToUser)
+                InputImage.fromBitmap(erodeImage(yuv420ToBitmap((frame.getData() as Image), c)), frame.rotationToUser)
             } else {
                 InputImage.fromByteArray(frame.getData(),
                         frame.size.width,
@@ -132,7 +138,7 @@ class CameraFrameProcessors {
                     var gray = (0.2989 * R + 0.5870 * G + 0.1140 * B).toInt()
 
                     // use 128 as threshold, above -> white, below -> black
-                    gray = if (gray > 128) 0 else 255
+                    gray = if (gray > 64) 0 else 255
                     // set new pixel color to output bitmap
                     bmOut.setPixel(x, y, Color.argb(A, gray, gray, gray))
                 }
@@ -208,20 +214,20 @@ class CameraFrameProcessors {
             return nv21
         }
 
-        private fun erodeImage(image: Bitmap): Bitmap{
+        private fun erodeImage(image: Bitmap): Bitmap {
             // image to mat
-            val mInput = Mat(image.height, image.width, CvType.CV_8UC1)
+            val mInput = Mat(image.height, image.width, CvType.CV_8UC3)
 
             Utils.bitmapToMat(image, mInput)
 
            // image.close()
             Imgproc.erode(mInput,
                     mInput,
-                    Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(2.0, 2.0)))
+                    Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(7.0, 7.0)))
 
-            Imgproc.dilate(mInput,
-                    mInput,
-                    Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(2.0, 2.0)))
+//            Imgproc.dilate(mInput,
+//                    mInput,
+//                    Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, Size(5.0, 5.0)))
 
             val outBitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
             Utils.matToBitmap(mInput, outBitmap)
