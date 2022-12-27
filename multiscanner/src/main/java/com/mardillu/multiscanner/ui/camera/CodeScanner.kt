@@ -41,19 +41,4 @@ class Scanner {
             }
         }
     }
-
-    class OCRScanner (listener: BarcodeListener? = null): ImageAnalysis.Analyzer {
-        private val listeners = ArrayList<BarcodeListener>().apply { listener?.let { add(it) } }
-
-        @androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
-        override fun analyze(imageProxy: ImageProxy) {
-            val mediaImage = imageProxy.image
-            if (mediaImage != null) {
-                val image =
-                    InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-                //process image
-                //then close proxy imageProxy.close()
-            }
-        }
-    }
 }

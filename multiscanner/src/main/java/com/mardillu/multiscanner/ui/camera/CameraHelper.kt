@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.DisplayMetrics
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
@@ -12,7 +11,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.mardillu.multiscanner.ui.camera.OpticalScanner.Companion.TAG
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
@@ -81,8 +79,8 @@ open class CameraHelper(
 
             previewView.setSurfaceProvider(viewFinder.surfaceProvider)
 
-        } catch (exc: Exception) {
-            Log.e(TAG, "Use case binding failed $exc")
+        } catch (ignored: Exception) {
+
         }
     }
 

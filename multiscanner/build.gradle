@@ -62,4 +62,6 @@ dependencies {
     implementation "androidx.camera:camera-view:$camerax_version"
 
     implementation 'com.github.MackHartley:RoundedProgressBar:3.0.0'
+    implementation 'cz.adaptech.tesseract4android:tesseract4android:4.3.0'
+
 }
