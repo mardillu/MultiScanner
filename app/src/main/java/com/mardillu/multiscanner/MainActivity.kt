@@ -1,20 +1,14 @@
 package com.mardillu.multiscanner
 
-import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.github.dhaval2404.imagepicker.ImagePicker
 import com.mardillu.multiscanner.databinding.ActivityMainBinding
+import com.mardillu.multiscanner.ui.camera.OpticalScanner
 import com.mardillu.multiscanner.ui.fingerprint.FingerprintScanner
 import com.mardillu.multiscanner.utils.*
 
@@ -42,15 +36,15 @@ class MainActivity : AppCompatActivity() {
             }
 
             scanOcr.setOnClickListener {
-                ImagePicker.with(this@MainActivity)
-                    .crop()
-                    .createIntent { intent ->
-                        startForProfileImageResult.launch(intent)
-                    }
+                val intent = Intent(this@MainActivity, OpticalScanner::class.java)
+                intent.putExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_OCR)
+                opticalScan.launch(intent)
             }
 
             barQrCode.setOnClickListener {
-
+                val intent = Intent(this@MainActivity, OpticalScanner::class.java)
+                intent.putExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_BARCODE)
+                opticalScan.launch(intent)
             }
         }
     }
@@ -93,33 +87,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val startForProfileImageResult =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            val resultCode = result.resultCode
-            val data = result.data
-
-            when (resultCode) {
-                Activity.RESULT_OK -> {
-                    //Image Uri will not be null for RESULT_OK
-                    val fileUri = data?.data!!
-                    val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, fileUri)
-
-                    TesseractOCR.processImage(bitmap, this@MainActivity, object : TesseractOCR.OCREventsListener {
-                        override fun onResult(result: String) {
-                            Toast.makeText(this@MainActivity, result, Toast.LENGTH_LONG).show()
-                        }
-
-                        override fun onError(throwable: Throwable) {
-                            Toast.makeText(this@MainActivity, throwable.message, Toast.LENGTH_LONG).show()
-                        }
-                    })
-                }
-                ImagePicker.RESULT_ERROR -> {
-                    Toast.makeText(this, ImagePicker.getError(data), Toast.LENGTH_SHORT).show()
-                }
-                else -> {
-                    Toast.makeText(this, "Task Cancelled", Toast.LENGTH_SHORT).show()
-                }
+    val opticalScan = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        when (result.resultCode) {
+            RESULT_SCAN_SUCCESS -> {
+                val data = result.data
+                val text = data?.getStringExtra(EXTRA_OCR_SCAN_RESULT)
+                Toast.makeText(this@MainActivity, "Scan success!: $text", Toast.LENGTH_LONG).show()
+            }
+            RESULT_SCAN_FAILED -> {
+                Toast.makeText(this@MainActivity, "Scan failed!", Toast.LENGTH_LONG).show()
+            }
+            RESULT_CANCELED -> {
+                Toast.makeText(this@MainActivity, "Scan canceled!", Toast.LENGTH_LONG).show()
             }
         }
+    }
 }
