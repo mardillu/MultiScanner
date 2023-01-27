@@ -8,11 +8,17 @@ import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
 import com.mardillu.multiscanner.databinding.ActivityOcrScannerBinding
 import com.mardillu.multiscanner.utils.*
-import com.otaliastudios.cameraview.CameraOptions
+import com.otaliastudios.cameraview.CameraListener
+import com.otaliastudios.cameraview.FileCallback
+import com.otaliastudios.cameraview.PictureResult
+import com.otaliastudios.cameraview.VideoResult
+import java.io.File
+
 
 class OpticalScanner : AppCompatActivity() {
 
     private lateinit var binding: ActivityOcrScannerBinding
+    private var ocrImageName = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +56,38 @@ class OpticalScanner : AppCompatActivity() {
         }
 
         updateUIDetectingText()
+        setCameraListeners()
+    }
+
+    private fun setCameraListeners() {
+        binding.cameraView.addCameraListener(
+                object : CameraListener() {
+                    override fun onPictureShutter() {
+                        // Picture capture started!
+                    }
+
+                    override fun onPictureTaken(result: PictureResult) {
+                        val file = createImageFile(this@OpticalScanner, intent.getStringExtra(EXTRA_OCR_IMAGE_NAME))
+                        result.toFile(file) {
+                            ocrImageName = it?.path?:""
+                        }
+                    }
+
+                    override fun onVideoTaken(result: VideoResult) {
+                        // A Video was taken!
+                    }
+
+                    override fun onVideoRecordingStart() {
+                        // Notifies that the actual video recording has started.
+                        // Can be used to show some UI indicator for video recording or counting time.
+                    }
+
+                    override fun onVideoRecordingEnd() {
+                        // Notifies that the actual video recording has ended.
+                        // Can be used to remove UI indicators added in onVideoRecordingStart.
+                    }
+                }
+        )
     }
 
     override fun onResume() {
@@ -71,6 +109,7 @@ class OpticalScanner : AppCompatActivity() {
         if (binding.textResult.text.toString().isNotEmpty()){
             return
         }
+        binding.cameraView.takePicture()
         binding.apply {
             textResult.text = "${result}Kg"
             textPrompts.text = "Quantity in bag"
@@ -92,8 +131,9 @@ class OpticalScanner : AppCompatActivity() {
 
     private fun confirmAndFinish() {
         val intent = Intent()
+        intent.putExtra(EXTRA_OCR_IMAGE_LOCATION, ocrImageName)
         intent.putExtra(EXTRA_OCR_SCAN_RESULT, binding.textResult.text.toString().replace("Kg",""))
-        setResult(RESULT_ENROLMENT_SUCCESSFUL, intent)
+        setResult(RESULT_SCAN_SUCCESS, intent)
 
         finish()
     }

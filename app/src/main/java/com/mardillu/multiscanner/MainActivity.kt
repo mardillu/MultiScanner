@@ -1,6 +1,7 @@
 package com.mardillu.multiscanner
 
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -11,6 +12,7 @@ import com.mardillu.multiscanner.databinding.ActivityMainBinding
 import com.mardillu.multiscanner.ui.camera.OpticalScanner
 import com.mardillu.multiscanner.ui.fingerprint.FingerprintScanner
 import com.mardillu.multiscanner.utils.*
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -38,6 +40,7 @@ class MainActivity : AppCompatActivity() {
             scanOcr.setOnClickListener {
                 val intent = Intent(this@MainActivity, OpticalScanner::class.java)
                 intent.putExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_OCR)
+                intent.putExtra(EXTRA_OCR_IMAGE_NAME, "98u34j3k45uo34")
                 opticalScan.launch(intent)
             }
 
@@ -54,8 +57,8 @@ class MainActivity : AppCompatActivity() {
             RESULT_ENROLMENT_SUCCESSFUL -> {
                 Toast.makeText(this@MainActivity, "Enrol success!", Toast.LENGTH_LONG).show()
                 val data = result.data
-                val rightProfile = data?.getByteArrayExtra(EXTRA_RIGHT_THUMB_PROFILE,)
-                val leftProfile = data?.getByteArrayExtra(EXTRA_LEFT_THUMB_PROFILE,)
+                val rightProfile = data?.getByteArrayExtra(EXTRA_RIGHT_THUMB_PROFILE)
+                val leftProfile = data?.getByteArrayExtra(EXTRA_LEFT_THUMB_PROFILE)
 
                 featureBufferEnroll.clear()
                 featureBufferEnroll.add(rightProfile)
@@ -92,7 +95,12 @@ class MainActivity : AppCompatActivity() {
             RESULT_SCAN_SUCCESS -> {
                 val data = result.data
                 val text = data?.getStringExtra(EXTRA_OCR_SCAN_RESULT)
-                Toast.makeText(this@MainActivity, "Scan success!: $text", Toast.LENGTH_LONG).show()
+                val img = data?.getStringExtra(EXTRA_OCR_IMAGE_LOCATION)
+                Toast.makeText(this@MainActivity, "Scan success!: $text== $img", Toast.LENGTH_LONG).show()
+
+                val bmImg = BitmapFactory.decodeFile(img)
+                binding.imageView.setImageBitmap(bmImg)
+                Log.d("TAG", "$img")
             }
             RESULT_SCAN_FAILED -> {
                 Toast.makeText(this@MainActivity, "Scan failed!", Toast.LENGTH_LONG).show()
