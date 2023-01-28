@@ -364,9 +364,9 @@ class FingerprintScanner : AppCompatActivity() {
     private fun enableActionButton(){
         runOnUiThread {
             if (scanType == SCAN_TYPE_FINGERPRINT_MATCH) {
-                binding.completeAction.text = "Complete Enrolment"
-            } else {
                 binding.completeAction.text = "Complete Verification"
+            } else {
+                binding.completeAction.text = "Complete Enrolment"
             }
 
             binding.completeAction.isEnabled = true
@@ -376,9 +376,9 @@ class FingerprintScanner : AppCompatActivity() {
     private fun disableActionButton(){
         runOnUiThread {
             if (scanType == SCAN_TYPE_FINGERPRINT_MATCH) {
-                binding.completeAction.text = "Complete Enrolment"
-            } else {
                 binding.completeAction.text = "Complete Verification"
+            } else {
+                binding.completeAction.text = "Complete Enrolment"
             }
 
             binding.completeAction.isEnabled = false
