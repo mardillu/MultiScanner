@@ -1,13 +1,30 @@
 package com.mardillu.multiscanner.ui.fingerprint
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Dialog
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Color
-import android.os.Bundle
-import android.os.CountDownTimer
+import android.graphics.drawable.ColorDrawable
+import android.os.*
+import android.text.TextUtils
+import android.util.Log
 import android.view.View
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.mardillu.multiscanner.R
 import com.mardillu.multiscanner.databinding.ActivityFingerScannerBinding
+import com.mardillu.multiscanner.databinding.DialogDeviceListBinding
+import com.mardillu.multiscanner.databinding.ItemBluetoothDeviceBinding
+import com.mardillu.multiscanner.ui.fingerprint.bluetooth.BluetoothReaderService
 import com.mardillu.multiscanner.utils.*
 import com.mx.finger.alg.MxISOFingerAlg
 import com.mx.finger.api.msc.MxIsoMscFingerApiFactory
@@ -15,16 +32,23 @@ import com.mx.finger.api.msc.MxMscBigFingerApi
 import com.mx.finger.common.MxImage
 import com.mx.finger.utils.RawBitmapUtils
 import org.zz.jni.FingerLiveApi
+import java.util.*
 import java.util.concurrent.Executors
 
 class FingerprintScanner : AppCompatActivity() {
     private lateinit var binding: ActivityFingerScannerBinding
+    private lateinit var bluetoothBinding: DialogDeviceListBinding
+    private lateinit var builder: Dialog
     private val TIME_OUT = 300000L //5 mins
     private val executor = Executors.newSingleThreadExecutor()
     private val featureBufferEnroll: ArrayList<ByteArray?> = arrayListOf(ByteArray(1), ByteArray(1))
     private var featureBufferMatch: ByteArray? = ByteArray(1)
     private lateinit var mxFingerAlg: MxISOFingerAlg
     private lateinit var mxMscBigFingerApi: MxMscBigFingerApi
+    private var mBtAdapter: BluetoothAdapter? = null
+    private var mChatService: BluetoothReaderService? = null
+
+    var pairedDevices: MutableSet<BluetoothDevice>? = null
 
     private var scanType = SCAN_TYPE_FINGERPRINT_ENROL
 
@@ -56,10 +80,11 @@ class FingerprintScanner : AppCompatActivity() {
                 showFingerImage(null)
                 //resetViews()
                 enrolFinger(0)
+                //initBluetooth()
             }
             SCAN_TYPE_FINGERPRINT_MATCH -> {
-                val rightProfile = intent.getByteArrayExtra(EXTRA_RIGHT_THUMB_PROFILE,)
-                val leftProfile = intent.getByteArrayExtra(EXTRA_LEFT_THUMB_PROFILE,)
+                val rightProfile = intent.getByteArrayExtra(EXTRA_RIGHT_THUMB_PROFILE)
+                val leftProfile = intent.getByteArrayExtra(EXTRA_LEFT_THUMB_PROFILE)
 
                 featureBufferEnroll.clear()
                 featureBufferEnroll.add(rightProfile)
@@ -79,7 +104,59 @@ class FingerprintScanner : AppCompatActivity() {
         }
     }
 
+    private fun initBluetooth(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            when {
+                ContextCompat.checkSelfPermission(
+                        this@FingerprintScanner,
+                        Manifest.permission.BLUETOOTH_SCAN
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    // You can use the API that requires the permission.
+                }
+                else -> {
+                    val requestPermissionLauncher =
+                        registerForActivityResult(ActivityResultContracts.RequestPermission()
+                        ) { isGranted: Boolean ->
+                            if (isGranted) {
+                                initBluetooth()
+                            } else {
+                                initBluetooth()
+                            }
+                        }
+                    requestPermissionLauncher.launch(
+                            Manifest.permission.BLUETOOTH_CONNECT
+                    )
+                    return
+                }
+            }
+        }
+        bluetoothBinding = DialogDeviceListBinding.inflate(layoutInflater)
+        builder = Dialog(this@FingerprintScanner, R.style.AlertDialogTheme)
+        Objects.requireNonNull(builder.window)?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        builder.setContentView(bluetoothBinding.root)
+        builder.setCancelable(false)
+
+        // Get the local Bluetooth adapter
+        mBtAdapter = BluetoothAdapter.getDefaultAdapter()
+        // Get a set of currently paired devices
+        pairedDevices = mBtAdapter!!.bondedDevices
+
+        // Register for broadcasts when a device is discovered
+        var filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        this.registerReceiver(mReceiver, filter)
+
+        // Register for broadcasts when discovery has finished
+        filter = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        this.registerReceiver(mReceiver, filter)
+
+        showBluetoothListDialog()
+        doDiscovery()
+    }
+
     private fun enrolFinger(index: Int) {
+//        if(builder.isShowing){
+//            builder.dismiss()
+//        }
         executor.execute {
             showPromptRightThumb()
 
@@ -407,5 +484,130 @@ class FingerprintScanner : AppCompatActivity() {
         }
 
         finish()
+    }
+
+    private fun showBluetoothListDialog(){
+        // If there are paired devices, add each one to the ArrayAdapter
+        //pairedDevices = getRelevantDevices(pairedDevices!!)
+        if (pairedDevices!!.isNotEmpty()) {
+            bluetoothBinding.layoutDevicesList.removeAllViews()
+            builder.show()
+            bluetoothBinding.apply {
+                //bluetoothBinding.progressBar.show()
+                //get bluetooth devices
+
+                pairedDevices!!.forEach { bt ->
+                    val itemBinding = ItemBluetoothDeviceBinding.inflate(layoutInflater)
+                    itemBinding.root.text = bt.name
+                    bluetoothBinding.layoutDevicesList.addView(itemBinding.root)
+
+                    itemBinding.root.setOnClickListener {
+                        connectDevice(bt.address)
+                    }
+                }
+                //bluetoothBinding.progressBar.hide()
+            }
+        } else {
+            Toast.makeText(this@FingerprintScanner, "No Bluetooth devices found", Toast.LENGTH_LONG).show()
+            doDiscovery()
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun getRelevantDevices(pairedDvs: MutableSet<BluetoothDevice>): MutableSet<BluetoothDevice>? {
+        val devices: MutableSet<BluetoothDevice> = HashSet()
+        for (dev in pairedDvs) {
+            val nm = dev.name.lowercase()
+            if (nm.startsWith("SHBT")) {
+                devices.add(dev)
+            }
+        }
+        return devices
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun doDiscovery() {
+        bluetoothBinding.notifications.text = "Scanning for new devices..."
+        // If we're already discovering, stop it
+        if (mBtAdapter!!.isDiscovering) {
+            mBtAdapter!!.cancelDiscovery()
+        }
+
+        // Request discover from BluetoothAdapter
+        mBtAdapter!!.startDiscovery()
+    }
+
+    private fun connectDevice(address: String) {
+        val device: BluetoothDevice = mBtAdapter!!.getRemoteDevice(address)
+        // Attempt to connect to the device
+        if (mChatService == null) setupChat()
+        mChatService!!.connect(device)
+    }
+
+    private fun setupChat(){
+        mChatService = BluetoothReaderService(this, mHandler)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        unregisterReceiver(mReceiver)
+    }
+
+    private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        @SuppressLint("MissingPermission")
+        override fun onReceive(context: Context?, intent: Intent) {
+            val action = intent.action
+
+            // When discovery finds a device
+            if (BluetoothDevice.ACTION_FOUND == action) {
+                // Get the BluetoothDevice object from the Intent
+                val device = intent
+                    .getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+                // If it's already paired, skip it, because it's been listed
+                // already
+                if (device!!.bondState != BluetoothDevice.BOND_BONDED) {
+                    pairedDevices?.add(device)
+                }
+                // When discovery is finished, change the Activity title
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED == action) {
+                bluetoothBinding.progressBar.hide()
+                bluetoothBinding.notifications.text = "Select Bluetooth device"
+                showBluetoothListDialog()
+            }
+        }
+    }
+
+    // The Handler that gets information back from the BluetoothChatService
+    @SuppressLint("HandlerLeak")
+    private val mHandler: Handler = object : Handler() {
+        override fun handleMessage(msg: Message) {
+            when (msg.what) {
+                MESSAGE_STATE_CHANGE -> when (msg.arg1) {
+                    BluetoothReaderService.STATE_CONNECTED -> {
+                        Log.d("TAG", "handleMessage: MESSAGE_STATE_CHANGE STATE_CONNECTED")
+                        enrolFinger(0)
+                    }
+                    BluetoothReaderService.STATE_CONNECTING -> {
+                        Log.d("TAG", "handleMessage: MESSAGE_STATE_CHANGE STATE_CONNECTING")
+                    }
+                    BluetoothReaderService.STATE_LISTEN, BluetoothReaderService.STATE_NONE -> {
+                        Log.d("TAG", "handleMessage: MESSAGE_STATE_CHANGE STATE_LISTEN STATE_NONE")
+                    }
+                }
+                MESSAGE_WRITE -> {
+                    Log.d("TAG", "handleMessage: MESSAGE_WRITE")
+                }
+                MESSAGE_READ -> {
+                    Log.d("TAG", "handleMessage: MESSAGE_READ")
+                }
+                MESSAGE_DEVICE_NAME -> {
+                    Log.d("TAG", "handleMessage: MESSAGE_DEVICE_NAME")
+                }
+                MESSAGE_TOAST -> {
+                    Log.d("TAG", "handleMessage: MESSAGE_TOAST")
+                }
+            }
+        }
     }
 }

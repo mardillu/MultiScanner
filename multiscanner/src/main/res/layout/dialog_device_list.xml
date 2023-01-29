@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bt_dialog"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/notifications"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scanning for new devices..."
+        android:textColor="#000"
+        android:gravity="center_vertical"
+        android:paddingEnd="10dp"
+        android:textStyle="bold"
+        android:background="?selectableItemBackground"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/notifications"
+        android:layout_marginTop="16dp"
+        >
+        <LinearLayout
+            android:id="@+id/layout_devices_list"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/bluetooth_name"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="SHBT202330023"
+                android:textColor="#000"
+                android:gravity="center_vertical"
+                android:paddingEnd="10dp"
+                android:background="?selectableItemBackground"/>
+        </LinearLayout>
+    </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_centerInParent="true"/>
+
+</RelativeLayout>

@@ -28,3 +28,14 @@ const val EXTRA_SCAN_TYPE = "EXTRA_SCAN_TYPE"
 const val EXTRA_OCR_SCAN_RESULT = "EXTRA_OCR_SCAN_RESULT"
 const val EXTRA_OCR_IMAGE_NAME = "EXTRA_OCR_IMAGE_NAME"
 const val EXTRA_OCR_IMAGE_LOCATION = "EXTRA_OCR_IMAGE_LOCATION"
+
+// Message types sent from the BluetoothChatService Handler
+const val MESSAGE_STATE_CHANGE = 1
+const val MESSAGE_READ = 2
+const val MESSAGE_WRITE = 3
+const val MESSAGE_DEVICE_NAME = 4
+const val MESSAGE_TOAST = 5
+
+// Key names received from the BluetoothChatService Handler
+const val DEVICE_NAME = "device_name"
+const val TOAST = "toast"
