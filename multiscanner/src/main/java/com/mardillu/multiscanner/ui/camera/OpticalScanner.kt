@@ -136,7 +136,7 @@ class OpticalScanner : AppCompatActivity() {
     private fun confirmAndFinish() {
         val intent = Intent()
         intent.putExtra(EXTRA_OCR_IMAGE_LOCATION, ocrImageName)
-        intent.putExtra(EXTRA_OCR_SCAN_RESULT, binding.textResult.text.toString().replace("Kg",""))
+        intent.putExtra(EXTRA_OCR_SCAN_RESULT, dummy.toString())
         setResult(RESULT_SCAN_SUCCESS, intent)
 
         finish()
