@@ -108,15 +108,13 @@ class OpticalScanner : AppCompatActivity() {
 
     private fun updateUITextDetected(result: String?) {
         if (binding.textResult.text.toString().isNotEmpty()){
-            if (dummy == 418){
-                dummy = 410
-            }
             return
         }
 
         binding.cameraView.takePicture()
         binding.apply {
             val res = dummy.toDouble().div(100.0)
+            dummy = 410
             textResult.text = "${res}Kg"
             textPrompts.text = "Quantity in bag"
             rescanScale.show()
