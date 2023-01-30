@@ -19,7 +19,6 @@ class OpticalScanner : AppCompatActivity() {
 
     private lateinit var binding: ActivityOcrScannerBinding
     private var ocrImageName = ""
-    var dummy = 418
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,12 +109,9 @@ class OpticalScanner : AppCompatActivity() {
         if (binding.textResult.text.toString().isNotEmpty()){
             return
         }
-
         binding.cameraView.takePicture()
         binding.apply {
-            val res = dummy.toDouble().div(100.0)
-            dummy = 410
-            textResult.text = "${res}Kg"
+            textResult.text = "${result}Kg"
             textPrompts.text = "Quantity in bag"
             rescanScale.show()
             completeAction.isEnabled = true
@@ -136,7 +132,7 @@ class OpticalScanner : AppCompatActivity() {
     private fun confirmAndFinish() {
         val intent = Intent()
         intent.putExtra(EXTRA_OCR_IMAGE_LOCATION, ocrImageName)
-        intent.putExtra(EXTRA_OCR_SCAN_RESULT, dummy.toString())
+        intent.putExtra(EXTRA_OCR_SCAN_RESULT, binding.textResult.text.toString().replace("Kg",""))
         setResult(RESULT_SCAN_SUCCESS, intent)
 
         finish()
