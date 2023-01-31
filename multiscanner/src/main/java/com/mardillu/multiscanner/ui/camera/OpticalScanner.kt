@@ -9,21 +9,31 @@ import androidx.appcompat.app.AppCompatActivity
 import com.mardillu.multiscanner.databinding.ActivityOcrScannerBinding
 import com.mardillu.multiscanner.utils.*
 import com.otaliastudios.cameraview.CameraListener
-import com.otaliastudios.cameraview.FileCallback
 import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.VideoResult
-import java.io.File
+import com.otaliastudios.cameraview.filter.Filters
+import com.otaliastudios.cameraview.filter.MultiFilter
+import org.opencv.android.CameraBridgeViewBase
+import org.opencv.android.OpenCVLoader
+import org.opencv.core.Mat
+import org.opencv.core.Size
+import org.opencv.imgproc.Imgproc
 
 
-class OpticalScanner : AppCompatActivity() {
+class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2{
 
     private lateinit var binding: ActivityOcrScannerBinding
     private var ocrImageName = ""
+    private lateinit var analyser: CameraFrameProcessors.OCRProcessor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityOcrScannerBinding.inflate(LayoutInflater.from(this))
         setContentView(binding.root)
+
+        if (!OpenCVLoader.initDebug()) {
+            Log.d(TAG, "onCreate: Unable to init openCV")
+        }
 
         binding.rescanScale.setOnClickListener {
             updateUIDetectingText()
@@ -37,21 +47,28 @@ class OpticalScanner : AppCompatActivity() {
             finish()
         }
 
+        binding.cameraView.filter = MultiFilter(Filters.BLACK_AND_WHITE.newInstance(), Filters.CONTRAST.newInstance(),)
+
         when (intent.getIntExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_BARCODE)) {
             SCAN_TYPE_BARCODE,
             SCAN_TYPE_QR_CODE -> {
-                binding.cameraView.addFrameProcessor(CameraFrameProcessors.BarcodeProcessor { string ->
-                    string?.let { url ->
-                        onResult(url)
-                    }
-                })
+//                binding.cameraView.addFrameProcessor(CameraFrameProcessors.BarcodeProcessor { string ->
+//                    string?.let { url ->
+//                        onResult(url)
+//                    }
+//                })
             }
             SCAN_TYPE_OCR -> {
-                binding.cameraView.addFrameProcessor(CameraFrameProcessors.OCRProcessor { string ->
+                binding.cameraView.addFrameProcessor(CameraFrameProcessors.OCRProcessor(this@OpticalScanner) { string ->
                     string?.let { url ->
                         updateUITextDetected(url)
                     }
                 })
+//                analyser = CameraFrameProcessors.OCRProcessor(this@OpticalScanner) { string ->
+//                    string?.let { url ->
+//                        updateUITextDetected(url)
+//                    }
+//                }
             }
         }
 
@@ -164,5 +181,27 @@ class OpticalScanner : AppCompatActivity() {
 
     companion object {
         const val TAG = "CameraXDemo"
+    }
+
+    override fun onCameraViewStarted(width: Int, height: Int) {
+
+    }
+
+    override fun onCameraViewStopped() {
+
+    }
+
+    override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat? {
+        val mInput = inputFrame?.gray()
+        Imgproc.erode(inputFrame?.gray(),
+                mInput,
+                Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(2.0, 2.0)))
+
+        Imgproc.dilate(mInput,
+                mInput,
+                Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(2.0, 2.0)))
+        analyser.analyse()
+
+        return inputFrame?.gray()
     }
 }

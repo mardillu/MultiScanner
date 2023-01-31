@@ -1,7 +1,9 @@
 package com.mardillu.multiscanner
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -12,6 +14,7 @@ import com.mardillu.multiscanner.databinding.ActivityMainBinding
 import com.mardillu.multiscanner.ui.camera.OpticalScanner
 import com.mardillu.multiscanner.ui.fingerprint.FingerprintScanner
 import com.mardillu.multiscanner.utils.*
+import org.opencv.imgproc.Imgproc
 
 
 class MainActivity : AppCompatActivity() {
@@ -50,6 +53,38 @@ class MainActivity : AppCompatActivity() {
                 opticalScan.launch(intent)
             }
         }
+    }
+
+    private fun createBlackAndWhite(src: Bitmap): Bitmap? {
+        val width = src.width
+        val height = src.height
+        // create output bitmap
+        val bmOut = Bitmap.createBitmap(width, height, src.config)
+        // color information
+        var A: Int
+        var R: Int
+        var G: Int
+        var B: Int
+        var pixel: Int
+
+        // scan through all pixels
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                // get pixel color
+                pixel = src.getPixel(x, y)
+                A = Color.alpha(pixel)
+                R = Color.red(pixel)
+                G = Color.green(pixel)
+                B = Color.blue(pixel)
+                var gray = (0.2989 * R + 0.5870 * G + 0.1140 * B).toInt()
+
+                // use 128 as threshold, above -> white, below -> black
+                gray = if (gray > 128) 0 else 255
+                // set new pixel color to output bitmap
+                bmOut.setPixel(x, y, Color.argb(A, gray, gray, gray))
+            }
+        }
+        return bmOut
     }
 
     val enrol = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
@@ -99,7 +134,9 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Scan success!: $text== $img", Toast.LENGTH_LONG).show()
 
                 val bmImg = BitmapFactory.decodeFile(img)
-                binding.imageView.setImageBitmap(bmImg)
+                Log.d("TAG", "Time Start ${System.currentTimeMillis()}")
+                binding.imageView.setImageBitmap(createBlackAndWhite(bmImg))
+                Log.d("TAG", "Time End ${System.currentTimeMillis()}")
                 Log.d("TAG", "$img")
             }
             RESULT_SCAN_FAILED -> {

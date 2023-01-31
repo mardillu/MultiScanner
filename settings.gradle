@@ -1,2 +1,2 @@
-include ':app', ":multiscanner"
+include ':app', ":multiscanner", ":opencv"
 rootProject.name = "MultiScanner"

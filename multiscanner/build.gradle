@@ -64,5 +64,5 @@ dependencies {
     implementation 'com.google.mlkit:text-recognition:16.0.0-beta6'
     implementation 'com.github.MackHartley:RoundedProgressBar:3.0.0'
     implementation 'com.otaliastudios:cameraview:2.7.2'
-
+    implementation project(path: ':opencv')
 }

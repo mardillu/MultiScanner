@@ -60,6 +60,7 @@
         app:cardCornerRadius="10dp"
         app:cardPreventCornerOverlap="false"
         android:layout_below="@+id/layout_header">
+
         <com.otaliastudios.cameraview.CameraView
             android:id="@+id/cameraView"
             android:layout_width="match_parent"
@@ -86,6 +87,12 @@
             >
 
         </com.otaliastudios.cameraview.CameraView>
+
+<!--        <org.opencv.android.JavaCameraView-->
+<!--            android:id="@+id/camera_view"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="200dp"-->
+<!--            app:show_fps="true" />-->
     </androidx.cardview.widget.CardView>
 
     <TextView

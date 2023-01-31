@@ -15,8 +15,15 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        ndk{
-            abiFilters "armeabi-v7a"
+//        ndk{
+//            abiFilters "armeabi-v7a"
+//        }
+    }
+
+    sourceSets { main { jni.srcDirs = ['src/main/jni', 'src/main/jniLibs/'] } }
+    externalNativeBuild {
+        ndkBuild {
+            path file('../../OpenCV-android-sdk/sdk/native/jni/OpenCV.mk')
         }
     }
 
@@ -47,4 +54,5 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
     implementation project(path: ':multiscanner')
+    implementation project(path: ':opencv')
 }
