@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -52,6 +53,9 @@ class MainActivity : AppCompatActivity() {
                 opticalScan.launch(intent)
             }
         }
+
+        val model = Build.MODEL
+        Log.d("TAG", "onCreate: $model")
     }
 
     private fun createBlackAndWhite(src: Bitmap): Bitmap? {

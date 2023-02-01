@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.ImageFormat.YUV_420_888
 import android.media.Image
+import android.os.Build
 import android.renderscript.*
 import android.util.Log
 import androidx.annotation.WorkerThread
@@ -212,14 +213,15 @@ class CameraFrameProcessors {
 
             Utils.bitmapToMat(image, mInput)
 
+            val trim = if(Build.MODEL == "Q807") 5.0 else 7.0
            // image.close()
             Imgproc.erode(mInput,
                     mInput,
-                    Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(7.0, 7.0)))
+                    Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(trim, trim)))
 
 //            Imgproc.dilate(mInput,
 //                    mInput,
-//                    Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, Size(5.0, 5.0)))
+//                    Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, Size(trim, trim)))
 
             val outBitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
             Utils.matToBitmap(mInput, outBitmap)
