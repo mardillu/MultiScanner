@@ -1,7 +1,6 @@
 package com.mardillu.multiscanner.ui.camera
 
 import android.content.Context
-import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.ImageFormat.YUV_420_888
@@ -25,15 +24,8 @@ import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.Size
-import org.opencv.imgcodecs.Imgcodecs
-import org.opencv.imgcodecs.Imgcodecs.IMREAD_COLOR
 import org.opencv.imgproc.Imgproc
-import org.tensorflow.lite.Interpreter
-import java.io.FileInputStream
-import java.io.IOException
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.channels.FileChannel
 
 
 /**
