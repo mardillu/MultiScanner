@@ -14,7 +14,6 @@ import com.mardillu.multiscanner.databinding.ActivityMainBinding
 import com.mardillu.multiscanner.ui.camera.OpticalScanner
 import com.mardillu.multiscanner.ui.fingerprint.FingerprintScanner
 import com.mardillu.multiscanner.utils.*
-import org.opencv.imgproc.Imgproc
 
 
 class MainActivity : AppCompatActivity() {
