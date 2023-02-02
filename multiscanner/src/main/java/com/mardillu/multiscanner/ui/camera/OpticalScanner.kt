@@ -3,6 +3,9 @@ package com.mardillu.multiscanner.ui.camera
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.CountDownTimer
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
@@ -11,8 +14,6 @@ import com.mardillu.multiscanner.utils.*
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.VideoResult
-import com.otaliastudios.cameraview.filter.Filters
-import com.otaliastudios.cameraview.filter.MultiFilter
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.Mat
@@ -25,6 +26,8 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
     private lateinit var binding: ActivityOcrScannerBinding
     private var ocrImageName = ""
     private lateinit var analyser: CameraFrameProcessors.OCRProcessor
+    var isRunning = false
+    var detectedCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +40,7 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
 
         binding.rescanScale.setOnClickListener {
             updateUIDetectingText()
+            showAid()
         }
 
         binding.completeAction.setOnClickListener {
@@ -46,6 +50,8 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
         binding.imgClose.setOnClickListener {
             finish()
         }
+
+        binding.quantityEdit.addTextChangedListener(textChangedListener)
 
         //binding.cameraView.filter = MultiFilter(Filters.BLACK_AND_WHITE.newInstance(), Filters.CONTRAST.newInstance(),)
 
@@ -64,16 +70,24 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
                         updateUITextDetected(url)
                     }
                 })
-//                analyser = CameraFrameProcessors.OCRProcessor(this@OpticalScanner) { string ->
-//                    string?.let { url ->
-//                        updateUITextDetected(url)
-//                    }
-//                }
             }
         }
 
         updateUIDetectingText()
         setCameraListeners()
+        startAidedInputCountDown()
+    }
+
+    private fun startAidedInputCountDown(){
+        timer.start()
+    }
+
+    private fun showAid() {
+        if ((!isRunning && detectedCount > 1) || detectedCount > 3) {
+            runOnUiThread {
+                binding.layoutManualInput.show()
+            }
+        }
     }
 
     private fun setCameraListeners() {
@@ -127,6 +141,24 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
             return
         }
         binding.cameraView.takePicture()
+        detectedCount += 1
+        binding.apply {
+            textResult.text = "${result}Kg"
+            textPrompts.text = "Quantity in bag"
+            rescanScale.show()
+            completeAction.isEnabled = true
+            updateProgress(100.0)
+        }
+    }
+
+    private fun updateUITextDetectedManual(result: String) {
+        if (result.endsWith(".")){
+            return
+        }
+        if (result.isEmpty()){
+            updateUIDetectingText()
+            return
+        }
         binding.apply {
             textResult.text = "${result}Kg"
             textPrompts.text = "Quantity in bag"
@@ -138,11 +170,14 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
 
     private fun updateUIDetectingText() {
         binding.apply {
+            binding.quantityEdit.removeTextChangedListener(textChangedListener)
+            binding.quantityEdit.setText("")
             textResult.text = ""
             textPrompts.text = "Detecting weight..."
             rescanScale.hide()
             completeAction.isEnabled = false
             updateProgress()
+            binding.quantityEdit.addTextChangedListener(textChangedListener)
         }
     }
 
@@ -204,5 +239,30 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
         analyser.analyse()
 
         return inputFrame?.gray()
+    }
+
+    private val textChangedListener = object : TextWatcher {
+        override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+        }
+
+        override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+        }
+
+        override fun afterTextChanged(it: Editable?) {
+            updateUITextDetectedManual(it.toString())
+        }
+    }
+
+    val timer = object: CountDownTimer(180000, 1000) {
+        override fun onTick(millisUntilFinished: Long) {
+            isRunning = true
+        }
+
+        override fun onFinish() {
+            isRunning = false
+            showAid()
+        }
     }
 }

@@ -213,7 +213,7 @@ class CameraFrameProcessors {
 
             Utils.bitmapToMat(image, mInput)
 
-            val trim = if(Build.MODEL == "Q807") 5.0 else 7.0
+            val trim = if(Build.MODEL == "Q807") 5.5 else 7.0
            // image.close()
             Imgproc.erode(mInput,
                     mInput,
