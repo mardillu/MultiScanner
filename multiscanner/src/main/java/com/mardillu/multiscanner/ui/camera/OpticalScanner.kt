@@ -28,6 +28,7 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
     private lateinit var analyser: CameraFrameProcessors.OCRProcessor
     var isRunning = false
     var detectedCount = 0
+    var isWeightTyped = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -140,6 +141,7 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
         if (binding.textResult.text.toString().isNotEmpty()){
             return
         }
+        isWeightTyped = false
         binding.cameraView.takePicture()
         detectedCount += 1
         binding.apply {
@@ -185,7 +187,10 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
         val intent = Intent()
         val kgString = binding.textResult.text.toString().replace("Kg","")
         intent.putExtra(EXTRA_OCR_IMAGE_LOCATION, ocrImageName)
-        intent.putExtra(EXTRA_OCR_SCAN_RESULT, kgString.toDouble().div(100.0).toString())
+        intent.putExtra(EXTRA_OCR_SCAN_RESULT, if (isWeightTyped)
+            kgString.toDouble().toString()
+        else
+            kgString.toDouble().div(100.0).toString())
         setResult(RESULT_SCAN_SUCCESS, intent)
 
         finish()
@@ -252,6 +257,7 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
 
         override fun afterTextChanged(it: Editable?) {
             updateUITextDetectedManual(it.toString())
+            isWeightTyped = true
         }
     }
 
