@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.ImageFormat.YUV_420_888
+import android.graphics.Matrix
 import android.media.Image
 import android.os.Build
 import android.renderscript.*
@@ -82,7 +83,7 @@ class CameraFrameProcessors {
             Log.d("TAG", "analyze BEFORE: ${frame.size.height}")
             val image = if (frame.dataClass === Image::class.java) {
                //InputImage.fromMediaImage(frame.getData(), frame.rotationToUser)
-                InputImage.fromBitmap(erodeImage(yuv420ToBitmap((frame.getData() as Image), c)), frame.rotationToUser)
+                InputImage.fromBitmap(erodeImage(yuv420ToBitmap((frame.getData() as Image), c)), 0)
             } else {
                 InputImage.fromByteArray(frame.getData(),
                         frame.size.width,
@@ -207,13 +208,25 @@ class CameraFrameProcessors {
             return nv21
         }
 
-        private fun erodeImage(image: Bitmap): Bitmap {
+        private fun cropImage(image: Bitmap): Bitmap {
+            val y = 36
+            val x = 60
+            val matrix = Matrix()
+
+            matrix.preRotate(90F)
+            return Bitmap.createBitmap(image, x, y, 50, 100, matrix, true)
+        }
+
+        private fun erodeImage(img: Bitmap): Bitmap {
             // image to mat
+            //144, 176
+            val image = cropImage(img)
+
             val mInput = Mat(image.height, image.width, CvType.CV_8UC3)
 
             Utils.bitmapToMat(image, mInput)
 
-            val trim = if(Build.MODEL == "Q807") 5.5 else 7.0
+            val trim = if(Build.MODEL == "Q807") 3.0 else 7.0
            // image.close()
             Imgproc.erode(mInput,
                     mInput,

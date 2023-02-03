@@ -84,7 +84,7 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
     }
 
     private fun showAid() {
-        if ((!isRunning && detectedCount > 1) || detectedCount > 3) {
+        if ((!isRunning && detectedCount >= 1) || detectedCount > 2) {
             runOnUiThread {
                 binding.layoutManualInput.show()
             }
@@ -145,7 +145,7 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
         binding.cameraView.takePicture()
         detectedCount += 1
         binding.apply {
-            textResult.text = "${result}Kg"
+            textResult.text = "${result?.toDouble()?.div(100.0)}Kg"
             textPrompts.text = "Quantity in bag"
             rescanScale.show()
             completeAction.isEnabled = true
@@ -261,7 +261,7 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
         }
     }
 
-    val timer = object: CountDownTimer(180000, 1000) {
+    val timer = object: CountDownTimer(20000, 1000) {
         override fun onTick(millisUntilFinished: Long) {
             isRunning = true
         }

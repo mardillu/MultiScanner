@@ -62,6 +62,10 @@
         app:cardPreventCornerOverlap="false"
         android:layout_below="@+id/layout_header">
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
         <com.otaliastudios.cameraview.CameraView
             android:id="@+id/cameraView"
             android:layout_width="match_parent"
@@ -88,6 +92,18 @@
             >
 
         </com.otaliastudios.cameraview.CameraView>
+
+            <LinearLayout
+                android:id="@+id/guide"
+                android:layout_width="265dp"
+                android:layout_height="130dp"
+                android:orientation="vertical"
+                android:layout_centerInParent="true"
+                android:background="@drawable/bg_camera_guide">
+
+            </LinearLayout>
+
+        </RelativeLayout>
 
 <!--        <org.opencv.android.JavaCameraView-->
 <!--            android:id="@+id/camera_view"-->
