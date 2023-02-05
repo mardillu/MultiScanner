@@ -37,3 +37,16 @@ fun String.toCustomByteArray(): ByteArray {
     }
     return bytes
 }
+
+fun ByteArray.toCustomArrayString(): String {
+    val builder = StringBuilder()
+    builder.append("[")
+    this.forEachIndexed { i, it ->
+        builder.append("$it")
+        if (i+1 < this.size){
+            builder.append(",")
+        }
+    }
+    builder.append("]")
+    return builder.toString()
+}

@@ -38,10 +38,9 @@ class MainActivity : AppCompatActivity() {
                         featureBufferEnroll[0])
                 intent.putExtra(EXTRA_LEFT_THUMB_PROFILE,
                         featureBufferEnroll[1])
-                intent.putExtra(EXTRA_FINGERPRINT_SOURCE, SOURCE_EXTERNAL_BT_READER)
                 intent.putExtra(EXTRA_FARMERS_FINGERPRINT_PROFILES,
-                        arrayListOf(featureBufferEnroll[0]?.toString(Charset.defaultCharset()),
-                                featureBufferEnroll[1]?.toString(Charset.defaultCharset())))
+                        arrayListOf(featureBufferEnroll[0]?.toCustomArrayString(),
+                                featureBufferEnroll[1]?.toCustomArrayString()))
                 verify.launch(intent)
             }
 

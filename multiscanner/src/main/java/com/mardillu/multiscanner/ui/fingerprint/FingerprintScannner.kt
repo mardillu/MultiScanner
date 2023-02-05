@@ -87,7 +87,7 @@ class FingerprintScanner : AppCompatActivity() {
         updateProgress(0.0)
 
         scanType = intent.getIntExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_FINGERPRINT_ENROL)
-        scannerSource = intent.getIntExtra(EXTRA_FINGERPRINT_SOURCE, SOURCE_INBUILT_READER)
+        scannerSource = if(Build.MODEL == "Q807") SOURCE_INBUILT_READER else SOURCE_EXTERNAL_BT_READER
         getByteArrayFromStringArray(intent.getStringArrayListExtra(EXTRA_FARMERS_FINGERPRINT_PROFILES))
 
         sp = PreferenceManager.getDefaultSharedPreferences(this)
@@ -213,9 +213,8 @@ class FingerprintScanner : AppCompatActivity() {
         filter = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         this.registerReceiver(mReceiver, filter)
 
-        //make conditional
+        initBluetoothListeners()
         if (preBluetoothDeviceAddress.isNullOrEmpty()) {
-            initBluetoothListeners()
             showBluetoothListDialog()
             doDiscovery()
         } else {
@@ -400,6 +399,7 @@ class FingerprintScanner : AppCompatActivity() {
                 showSuccessToast(
                         "Enrollment complete",
                 )
+                featureBufferEnroll[fingerIndex] = latestBTProfile
                 enableActionButton()
             } else {
                 showSuccessToast(
@@ -447,6 +447,9 @@ class FingerprintScanner : AppCompatActivity() {
     }
 
     private fun matchFinger(sleep: Boolean = false){
+        if (executor.isShutdown){
+            return
+        }
         executor.execute {
             showPromptNeutralFinger()
 
@@ -806,8 +809,8 @@ class FingerprintScanner : AppCompatActivity() {
         unregisterReceiver(mReceiver)
         preBluetoothDeviceAddress = address
         editor.putString(PREF_PREV_BLUETOOTH_DEVICE_ADDRESS, address)
-        editor.apply()
-        asyncBluetoothReader!!.connect(device);
+        editor.commit()
+        asyncBluetoothReader!!.connect(device)
     }
 
     override fun onDestroy() {
@@ -891,14 +894,12 @@ class FingerprintScanner : AppCompatActivity() {
                     BluetoothReader.STATE_CONNECTED -> {
                         Log.d("TAG", "handleMessage: MESSAGE_STATE_CHANGE STATE_CONNECTED")
                         enrolBTFinger()
-
-//                    mTitle.setText(android.R.string.title_connected_to)
-//                    mTitle!!.append(mConnectedBtName)
-//                    AddStatusList(android.R.string.title_connected_to + mConnectedBtName)
                     }
                     BluetoothReader.STATE_CONNECTING -> {
                         Log.d("TAG", "handleMessage: STATE_CONNECTING")
-//                    mTitle.setText(android.R.string.title_connecting)
+                        showSuccessToast(
+                                "Connecting to device",
+                        )
                     }
                     BluetoothReader.STATE_LISTEN, BluetoothReader.STATE_NONE -> {
                         Log.d("TAG", "handleMessage: STATE_LISTEN STATE_NONE")
@@ -908,18 +909,24 @@ class FingerprintScanner : AppCompatActivity() {
             }
 
             override fun onBluetoothStateDevice(devicename: String) {
-
+                showSuccessToast(
+                        "Connected to: $devicename",
+                )
             }
 
             override fun onBluetoothStateLost(arg: Int) {
                 when (arg) {
                     BluetoothReader.MSG_UNABLE -> {
                         Log.d("TAG", "onBluetoothStateLost: BluetoothReader.MSG_UNABLE")
-//                    Toast.makeText(applicationContext, getString(android.R.string.title_unable_connected), Toast.LENGTH_SHORT).show()
+                        showErrorToast(
+                                "Unable to connect to bluetooth device",
+                        )
                     }
                     BluetoothReader.MSG_LOST -> {
                         Log.d("TAG", "onBluetoothStateLost: BluetoothReader.MSG_LOST")
-//                    Toast.makeText(applicationContext, getString(android.R.string.title_lost_connected), Toast.LENGTH_SHORT).show()
+                        showErrorToast(
+                                "Bluetooth device disconnected",
+                        )
                     }
                 }
             }
