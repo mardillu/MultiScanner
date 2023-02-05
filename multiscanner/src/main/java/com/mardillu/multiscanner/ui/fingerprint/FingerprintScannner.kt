@@ -342,30 +342,31 @@ class FingerprintScanner : AppCompatActivity() {
 
                 //step 1 extract finger feature
                 showFingerImage(image)
-                featureBufferEnroll[index] =
-                    mxFingerAlg.extractFeature(
+                val profile = mxFingerAlg.extractFeature(
                         image.data,
                         image.width,
                         image.height
-                    )
-                if (featureBufferEnroll[index] == null) {
+                )
+                if (profile == null) {
                     showErrorToast(
                         "Enrollment failed. Try again",
                     )
                     enrolFinger(index)
                     return@execute
                 } else {
-                    if (!isFingerPrintUnique(featureBufferEnroll[fingerIndex], allFarmersFingerProfiles)) {
+                    if (!isFingerPrintUniqueLegacy(profile, allFarmersFingerProfiles)) {
                         showErrorToast(
                                 "Looks like this finger has been scanned already. Please scan a different finger",
                         )
                         enrolFinger(index)
                         return@execute
                     }
+                    featureBufferEnroll[index] = profile
                     if (index == 0) {
                         showSuccessToast(
                             "Right thumb captured successfully",
                         )
+                        allFarmersFingerProfiles.add(profile)
                         enrolFinger(1)
                     } else {
                         showSuccessToast(
@@ -413,18 +414,17 @@ class FingerprintScanner : AppCompatActivity() {
                 return
             }
 
+            featureBufferEnroll[fingerIndex] = latestBTProfile
             if (fingerIndex >= NUM_FINGERS_TO_SCAN){
                 showSuccessToast(
                         "Enrollment complete",
                 )
-                featureBufferEnroll[fingerIndex] = latestBTProfile
                 enableActionButton()
             } else {
                 showSuccessToast(
                         "Right thumb captured successfully",
                 )
 
-                featureBufferEnroll[fingerIndex] = latestBTProfile
                 allFarmersFingerProfiles.add(latestBTProfile!!)
                 showPromptLeftThumb()
                 fingerIndex += 1
