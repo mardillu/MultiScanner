@@ -28,3 +28,25 @@ fun Context.createImageFile(c: Context, name: String? = ""): File {
 
     return File(getExternalFilesDir(null), "${name}_${timeStamp}.jpg")
 }
+
+fun String.toCustomByteArray(): ByteArray {
+    val byteArray = this.replace("[","").replace("]","").split(",")
+    val bytes = ByteArray(byteArray.size)
+    byteArray.forEachIndexed { i, it, ->
+        bytes[i] = it.trim().toByte()
+    }
+    return bytes
+}
+
+fun ByteArray.toCustomArrayString(): String {
+    val builder = StringBuilder()
+    builder.append("[")
+    this.forEachIndexed { i, it ->
+        builder.append("$it")
+        if (i+1 < this.size){
+            builder.append(",")
+        }
+    }
+    builder.append("]")
+    return builder.toString()
+}
