@@ -5,21 +5,27 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
+import android.content.SharedPreferences.Editor
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.*
-import android.text.TextUtils
+import android.preference.PreferenceManager
 import android.util.Log
+import android.view.MenuInflater
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import com.fpreader.fpcore.FPFormat
+import com.fpreader.fpcore.FPMatch
+import com.fpreader.fpdevice.AsyncBluetoothReader
+import com.fpreader.fpdevice.BluetoothReader
 import com.mardillu.multiscanner.R
 import com.mardillu.multiscanner.databinding.ActivityFingerScannerBinding
 import com.mardillu.multiscanner.databinding.DialogDeviceListBinding
@@ -34,25 +40,36 @@ import com.mx.finger.utils.RawBitmapUtils
 import org.zz.jni.FingerLiveApi
 import java.util.*
 import java.util.concurrent.Executors
+import kotlin.concurrent.schedule
+
 
 class FingerprintScanner : AppCompatActivity() {
     private lateinit var binding: ActivityFingerScannerBinding
     private lateinit var bluetoothBinding: DialogDeviceListBinding
     private lateinit var builder: Dialog
     private val TIME_OUT = 300000L //5 mins
-    private val executor = Executors.newSingleThreadExecutor()
+    private var executor = Executors.newSingleThreadExecutor()
     private val featureBufferEnroll: ArrayList<ByteArray?> = arrayListOf(ByteArray(1), ByteArray(1))
     private var featureBufferMatch: ByteArray? = ByteArray(1)
+    private var allFarmersFingerProfiles: ArrayList<ByteArray> = ArrayList()
     private lateinit var mxFingerAlg: MxISOFingerAlg
     private lateinit var mxMscBigFingerApi: MxMscBigFingerApi
     private var mBtAdapter: BluetoothAdapter? = null
-    private var mChatService: BluetoothReaderService? = null
-
-    var pairedDevices: MutableSet<BluetoothDevice>? = null
-
+    private var scannerSource = SOURCE_INBUILT_READER
+    private var asyncBluetoothReader: AsyncBluetoothReader? = AsyncBluetoothReader()
+    var pairedDevices: ArrayList<BluetoothDevice>? = null
     private var scanType = SCAN_TYPE_FINGERPRINT_ENROL
-
+    private var fingerIndex = 0
     var lfdEnabled = false
+
+    var latestBTImage: ByteArray? = null
+    var latestBTProfile: ByteArray? = null
+    private val mFPFormat = FPFormat.ANSI_378_2004
+
+    private lateinit var sp: SharedPreferences
+    private var preBluetoothDeviceAddress: String? = null
+    private lateinit var editor: Editor
+
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityFingerScannerBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
@@ -70,7 +87,14 @@ class FingerprintScanner : AppCompatActivity() {
         updateProgress(0.0)
 
         scanType = intent.getIntExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_FINGERPRINT_ENROL)
-        if (!SCAN_TYPES.contains(scanType)){
+        scannerSource = intent.getIntExtra(EXTRA_FINGERPRINT_SOURCE, SOURCE_INBUILT_READER)
+        getByteArrayFromStringArray(intent.getStringArrayListExtra(EXTRA_FARMERS_FINGERPRINT_PROFILES))
+
+        sp = PreferenceManager.getDefaultSharedPreferences(this)
+        editor = sp.edit()
+        preBluetoothDeviceAddress = sp.getString(PREF_PREV_BLUETOOTH_DEVICE_ADDRESS, "")
+
+        if (!SCAN_TYPES.contains(scanType)) {
             scanType = SCAN_TYPE_FINGERPRINT_ENROL
         }
         disableActionButton()
@@ -78,9 +102,11 @@ class FingerprintScanner : AppCompatActivity() {
         when (scanType) {
             SCAN_TYPE_FINGERPRINT_ENROL -> {
                 showFingerImage(null)
-                //resetViews()
-                enrolFinger(0)
-                //initBluetooth()
+                if (scannerSource == SOURCE_INBUILT_READER){
+                    resetForInbuiltReader()
+                } else {
+                    resetForBluetooth(false)
+                }
             }
             SCAN_TYPE_FINGERPRINT_MATCH -> {
                 val rightProfile = intent.getByteArrayExtra(EXTRA_RIGHT_THUMB_PROFILE)
@@ -91,8 +117,12 @@ class FingerprintScanner : AppCompatActivity() {
                 featureBufferEnroll.add(leftProfile)
 
                 showFingerImage(null)
-                //resetViews()
-                matchFinger()
+
+                if (scannerSource == SOURCE_INBUILT_READER){
+                    matchFinger()
+                } else {
+                    resetForBluetooth(false)
+                }
             }
         }
 
@@ -101,6 +131,38 @@ class FingerprintScanner : AppCompatActivity() {
         }
         binding.imgClose.setOnClickListener {
             setResultFailAndClose()
+        }
+        binding.layoutMenu.setOnClickListener { v ->
+            val popup = PopupMenu(this@FingerprintScanner, v)
+            val inflater: MenuInflater = popup.getMenuInflater()
+            inflater.inflate(R.menu.fingerprint_options, popup.getMenu())
+
+            popup.setOnMenuItemClickListener { item ->
+                val i: Int = item.getItemId()
+                if (i == R.id.connect_new_device) {
+                    resetForBluetooth(true)
+                    return@setOnMenuItemClickListener true
+                } else if (i == R.id.use_inbuilt_reader) {
+                    resetForInbuiltReader()
+                    return@setOnMenuItemClickListener true
+                } else if (i == R.id.use_bluetooth_reader) {
+                    resetForBluetooth(false)
+                    return@setOnMenuItemClickListener true
+                } else if (i == R.id.close) {
+                    setResultFailAndClose()
+                    return@setOnMenuItemClickListener true
+                } else {
+                    return@setOnMenuItemClickListener false
+                }
+            }
+            popup.show()
+        }
+    }
+
+    private fun getByteArrayFromStringArray(profiles: ArrayList<String>?) {
+        profiles?.forEach {
+            val byteArray = it.toCustomByteArray()
+            allFarmersFingerProfiles.add(byteArray)
         }
     }
 
@@ -129,6 +191,8 @@ class FingerprintScanner : AppCompatActivity() {
                     return
                 }
             }
+        } else {
+            //initBluetooth()
         }
         bluetoothBinding = DialogDeviceListBinding.inflate(layoutInflater)
         builder = Dialog(this@FingerprintScanner, R.style.AlertDialogTheme)
@@ -139,7 +203,7 @@ class FingerprintScanner : AppCompatActivity() {
         // Get the local Bluetooth adapter
         mBtAdapter = BluetoothAdapter.getDefaultAdapter()
         // Get a set of currently paired devices
-        pairedDevices = mBtAdapter!!.bondedDevices
+        pairedDevices = ArrayList(mBtAdapter!!.bondedDevices)
 
         // Register for broadcasts when a device is discovered
         var filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
@@ -149,14 +213,54 @@ class FingerprintScanner : AppCompatActivity() {
         filter = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         this.registerReceiver(mReceiver, filter)
 
-        showBluetoothListDialog()
-        doDiscovery()
+        //make conditional
+        if (preBluetoothDeviceAddress.isNullOrEmpty()) {
+            initBluetoothListeners()
+            showBluetoothListDialog()
+            doDiscovery()
+        } else {
+            connectDevice(preBluetoothDeviceAddress!!)
+        }
+    }
+
+    private fun resetForBluetooth(hard: Boolean = false){
+        latestBTImage = null
+        latestBTProfile = null
+        if (hard){
+            preBluetoothDeviceAddress = null
+        }
+        fingerIndex = 0
+        featureBufferEnroll[0] = null
+        featureBufferEnroll[1] = null
+        executor.shutdown()
+        asyncBluetoothReader!!.start()
+        disableActionButton()
+        showPromptRightThumb()
+        updateProgress(0.0)
+        initBluetooth()
+    }
+
+    private fun resetForInbuiltReader(){
+        executor = Executors.newSingleThreadExecutor()
+        asyncBluetoothReader!!.stop()
+        try {
+            unregisterReceiver(mReceiver)
+        }catch (e: Exception){}
+        featureBufferEnroll[0] = null
+        featureBufferEnroll[1] = null
+        disableActionButton()
+        showPromptRightThumb()
+        updateProgress(0.0)
+        enrolFinger(0)
     }
 
     private fun enrolFinger(index: Int) {
 //        if(builder.isShowing){
 //            builder.dismiss()
 //        }
+        if (executor.isShutdown){
+            return
+        }
         executor.execute {
             showPromptRightThumb()
 
@@ -234,6 +338,13 @@ class FingerprintScanner : AppCompatActivity() {
                     enrolFinger(index)
                     return@execute
                 } else {
+                    if (!isFingerPrintUnique(featureBufferEnroll[fingerIndex], allFarmersFingerProfiles)) {
+                        showErrorToast(
+                                "Looks like this finger has been scanned already. Please scan a different finger",
+                        )
+                        enrolFinger(index)
+                        return@execute
+                    }
                     if (index == 0) {
                         showSuccessToast(
                             "Right thumb captured successfully",
@@ -248,6 +359,89 @@ class FingerprintScanner : AppCompatActivity() {
                 }
             } finally {
                 //dismissbinding.progressBarDialog()
+            }
+        }
+    }
+
+    private fun enrolBTFinger() {
+        latestBTImage = null
+        latestBTProfile = null
+        Timer("SettingUp", false).schedule(1000) {
+            asyncBluetoothReader!!.GetImageAndTemplate()
+        }
+    }
+
+    private fun processBTFP(){
+        if (latestBTImage == null || latestBTProfile == null){
+            return
+        }
+        val bmp = BitmapFactory.decodeByteArray(latestBTImage, 0, latestBTImage!!.size)
+        val qualityScore =
+            mxFingerAlg.getQualityScore(latestBTImage, bmp.width, bmp.height)
+        updateProgress(qualityScore.toDouble())
+        if (qualityScore < 60) {
+            showErrorToast(
+                    "Quality too low. Scan again",
+            )
+            enrolBTFinger()
+            return
+        } else {
+            val isUnique = isFingerPrintUnique(latestBTProfile, allFarmersFingerProfiles)
+
+            if (!isUnique) {
+                showErrorToast(
+                        "Looks like this finger has been scanned already. Please scan a different finger",
+                )
+                enrolBTFinger()
+                return
+            }
+
+            if (fingerIndex >= NUM_FINGERS_TO_SCAN){
+                showSuccessToast(
+                        "Enrollment complete",
+                )
+                enableActionButton()
+            } else {
+                showSuccessToast(
+                        "Right thumb captured successfully",
+                )
+
+                featureBufferEnroll[fingerIndex] = latestBTProfile
+                allFarmersFingerProfiles.add(latestBTProfile!!)
+                showPromptLeftThumb()
+                fingerIndex += 1
+                enrolBTFinger()
+            }
+        }
+    }
+
+    private fun processBTFPMatch(){
+        if (latestBTImage == null || latestBTProfile == null){
+            return
+        }
+        val bmp = BitmapFactory.decodeByteArray(latestBTImage, 0, latestBTImage!!.size)
+        val qualityScore =
+            mxFingerAlg.getQualityScore(latestBTImage, bmp.width, bmp.height)
+        updateProgress(qualityScore.toDouble())
+        if (qualityScore < 60) {
+            showErrorToast(
+                    "Quality too low. Scan again",
+            )
+            enrolBTFinger()
+            return
+        } else {
+            val isUnique = isFingerPrintUnique(latestBTProfile, allFarmersFingerProfiles)
+
+            if (!isUnique) {
+                showSuccessToast(
+                        "Fingerprint matched found",
+                )
+                enableActionButton()
+            } else {
+                showErrorToast(
+                        "Match failed. Try again",
+                )
+                enrolBTFinger()
             }
         }
     }
@@ -367,6 +561,69 @@ class FingerprintScanner : AppCompatActivity() {
             }
         }
     }
+
+    private fun showBTFingerImage(bitmap: Bitmap?) {
+        runOnUiThread {
+            if (bitmap == null) {
+                binding.fingerImage.visibility = View.GONE
+            } else {
+                binding.fingerImage.visibility = View.VISIBLE
+                binding.fingerImage.setImageBitmap(bitmap)
+                binding.fingerImage.tag = bitmap
+            }
+        }
+    }
+
+    private fun isFingerPrintUnique(compare: ByteArray?, with: ArrayList<ByteArray>): Boolean {
+        if (compare == null){
+            return true
+        }
+        val mRefData = ByteArray(512)
+        FPFormat.getInstance().StdToAnsiIso(compare, mRefData, FPFormat.ANSI_378_2004)
+
+        for (profile in with){
+            val adat = ByteArray(512)
+            val bdat = ByteArray(512)
+
+
+            val mMatData = ByteArray(512)
+            FPFormat.getInstance().StdToAnsiIso(profile, mMatData, FPFormat.ANSI_378_2004)
+
+            FPFormat.getInstance()
+                .AnsiIsoToStd(mRefData, adat, FPFormat.ANSI_378_2004)
+            FPFormat.getInstance()
+                .AnsiIsoToStd(mMatData, bdat, FPFormat.ANSI_378_2004)
+            val score = FPMatch.getInstance().MatchTemplate(adat, bdat)
+            val scoreAlt = FPMatch.getInstance().MatchTemplate(compare, profile)
+
+            if (score >= 60 || scoreAlt >= 60){
+                return false
+            }
+        }
+
+        return true
+    }
+
+    private fun isFingerPrintUniqueLegacy(compare: ByteArray?, with: ArrayList<ByteArray>): Boolean {
+        if (compare == null){
+            return true
+        }
+
+        val mRefData = ByteArray(512)
+        FPFormat.getInstance().StdToAnsiIso(compare, mRefData, FPFormat.ANSI_378_2004)
+        for (profile in with){
+            val mMatData = ByteArray(512)
+            FPFormat.getInstance().StdToAnsiIso(profile, mMatData, FPFormat.ANSI_378_2004)
+            val match =
+                mxFingerAlg.match(mRefData, mMatData, 3)
+            val matchAlt =
+                mxFingerAlg.match(compare, profile, 3)
+            if (match == 0 || matchAlt == 0){
+                return false
+            }
+        }
+        return true
+    }
     
     private fun showErrorToast(message: String){
         runOnUiThread {
@@ -397,7 +654,7 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.progressBar.setProgressPercentage(perc, true)
 
-            if (perc >= 70.0) {
+            if (perc >= 60.0) {
                 binding.progressBar.setBackgroundDrawableColor(Color.parseColor("#D5C6F6DB"))
                 binding.progressBar.setBackgroundTextColor(Color.parseColor("#2B9D5C"))
                 binding.progressBar.setProgressDrawableColor(Color.parseColor("#2B9D5C"))
@@ -486,23 +743,27 @@ class FingerprintScanner : AppCompatActivity() {
         finish()
     }
 
+    @SuppressLint("MissingPermission")
     private fun showBluetoothListDialog(){
         // If there are paired devices, add each one to the ArrayAdapter
-        //pairedDevices = getRelevantDevices(pairedDevices!!)
-        if (pairedDevices!!.isNotEmpty()) {
+        val filteredDevices = getRelevantDevices(pairedDevices!!)
+        if (filteredDevices.isNotEmpty()) {
             bluetoothBinding.layoutDevicesList.removeAllViews()
-            builder.show()
+            if (!builder.isShowing){
+                builder.show()
+            }
             bluetoothBinding.apply {
                 //bluetoothBinding.progressBar.show()
                 //get bluetooth devices
 
-                pairedDevices!!.forEach { bt ->
+                filteredDevices.forEach { bt ->
                     val itemBinding = ItemBluetoothDeviceBinding.inflate(layoutInflater)
                     itemBinding.root.text = bt.name
                     bluetoothBinding.layoutDevicesList.addView(itemBinding.root)
 
                     itemBinding.root.setOnClickListener {
                         connectDevice(bt.address)
+                        builder.dismiss()
                     }
                 }
                 //bluetoothBinding.progressBar.hide()
@@ -514,11 +775,11 @@ class FingerprintScanner : AppCompatActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun getRelevantDevices(pairedDvs: MutableSet<BluetoothDevice>): MutableSet<BluetoothDevice>? {
+    private fun getRelevantDevices(pairedDvs: ArrayList<BluetoothDevice>): MutableSet<BluetoothDevice> {
         val devices: MutableSet<BluetoothDevice> = HashSet()
         for (dev in pairedDvs) {
-            val nm = dev.name.lowercase()
-            if (nm.startsWith("SHBT")) {
+            val nm = dev.name?.lowercase()?: dev.address
+            if (nm.startsWith("shbt")) {
                 devices.add(dev)
             }
         }
@@ -540,18 +801,21 @@ class FingerprintScanner : AppCompatActivity() {
     private fun connectDevice(address: String) {
         val device: BluetoothDevice = mBtAdapter!!.getRemoteDevice(address)
         // Attempt to connect to the device
-        if (mChatService == null) setupChat()
-        mChatService!!.connect(device)
-    }
-
-    private fun setupChat(){
-        mChatService = BluetoothReaderService(this, mHandler)
+//        if (mChatService == null) setupChat()
+//        mChatService!!.connect(device)
+        unregisterReceiver(mReceiver)
+        preBluetoothDeviceAddress = address
+        editor.putString(PREF_PREV_BLUETOOTH_DEVICE_ADDRESS, address)
+        editor.apply()
+        asyncBluetoothReader!!.connect(device);
     }
 
     override fun onDestroy() {
         super.onDestroy()
-
-        unregisterReceiver(mReceiver)
+        asyncBluetoothReader!!.stop()
+        try {
+            unregisterReceiver(mReceiver)
+        } catch (e: Exception){}
     }
 
     private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -578,6 +842,12 @@ class FingerprintScanner : AppCompatActivity() {
         }
     }
 
+    @Synchronized
+    override fun onResume() {
+        super.onResume()
+        asyncBluetoothReader!!.start()
+    }
+
     // The Handler that gets information back from the BluetoothChatService
     @SuppressLint("HandlerLeak")
     private val mHandler: Handler = object : Handler() {
@@ -586,7 +856,8 @@ class FingerprintScanner : AppCompatActivity() {
                 MESSAGE_STATE_CHANGE -> when (msg.arg1) {
                     BluetoothReaderService.STATE_CONNECTED -> {
                         Log.d("TAG", "handleMessage: MESSAGE_STATE_CHANGE STATE_CONNECTED")
-                        enrolFinger(0)
+                        //enrolFinger(0)
+
                     }
                     BluetoothReaderService.STATE_CONNECTING -> {
                         Log.d("TAG", "handleMessage: MESSAGE_STATE_CHANGE STATE_CONNECTING")
@@ -609,5 +880,244 @@ class FingerprintScanner : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun initBluetoothListeners() {
+        //asyncBluetoothReader =
+        val bluetoothStateListener = asyncBluetoothReader!!.setOnBluetoothStateListener(object :
+            AsyncBluetoothReader.OnBluetoothStateListener {
+            override fun onBluetoothStateChange(arg: Int) {
+                when (arg) {
+                    BluetoothReader.STATE_CONNECTED -> {
+                        Log.d("TAG", "handleMessage: MESSAGE_STATE_CHANGE STATE_CONNECTED")
+                        enrolBTFinger()
+
+//                    mTitle.setText(android.R.string.title_connected_to)
+//                    mTitle!!.append(mConnectedBtName)
+//                    AddStatusList(android.R.string.title_connected_to + mConnectedBtName)
+                    }
+                    BluetoothReader.STATE_CONNECTING -> {
+                        Log.d("TAG", "handleMessage: STATE_CONNECTING")
+//                    mTitle.setText(android.R.string.title_connecting)
+                    }
+                    BluetoothReader.STATE_LISTEN, BluetoothReader.STATE_NONE -> {
+                        Log.d("TAG", "handleMessage: STATE_LISTEN STATE_NONE")
+//                    mTitle.setText(android.R.string.title_not_connected)
+                    }
+                }
+            }
+
+            override fun onBluetoothStateDevice(devicename: String) {
+
+            }
+
+            override fun onBluetoothStateLost(arg: Int) {
+                when (arg) {
+                    BluetoothReader.MSG_UNABLE -> {
+                        Log.d("TAG", "onBluetoothStateLost: BluetoothReader.MSG_UNABLE")
+//                    Toast.makeText(applicationContext, getString(android.R.string.title_unable_connected), Toast.LENGTH_SHORT).show()
+                    }
+                    BluetoothReader.MSG_LOST -> {
+                        Log.d("TAG", "onBluetoothStateLost: BluetoothReader.MSG_LOST")
+//                    Toast.makeText(applicationContext, getString(android.R.string.title_lost_connected), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+        val onDeviceInfoListener = asyncBluetoothReader!!.setOnDeviceInfoListener(object :
+            AsyncBluetoothReader.OnDeviceInfoListener {
+            override fun onDeviceInfoDeviceType(devicetype: String) {
+//            AddStatusList(getString(android.R.string.txt_devicetype) + devicetype)
+            }
+
+            override fun onDeviceInfoDeviceSN(devicesn: String) {
+//            AddStatusList(getString(android.R.string.txt_devicesn) + devicesn)
+            }
+
+            override fun onDeviceInfoDeviceSensor(sensor: Int) {
+//            AddStatusList(getString(android.R.string.txt_devicesensor) + sensor.toString())
+            }
+
+            override fun onDeviceInfoDeviceVer(ver: Int) {
+//            AddStatusList(getString(android.R.string.txt_devicever) + ver.toString())
+            }
+
+            override fun onDeviceInfoDeviceBat(args: ByteArray, size: Int) {
+                Log.d("TAG", "onDeviceInfoDeviceBat: ${args.toString()}, $size")
+//            AddStatusList(getString(android.R.string.txt_batval) + Integer.toString(args[0] / 10) + "." + Integer.toString(args[0] % 10) + "V")
+            }
+
+            override fun onDeviceInfoDeviceShutdown(arg: Int) {
+//            if (arg == 1) AddStatusList(getString(android.R.string.txt_closeok)) else AddStatusList(getString(android.R.string.txt_closefail))
+            }
+
+            override fun onDeviceInfoDeviceError(arg: Int) {
+//            AddStatusList(getString(android.R.string.txt_getdevicefail))
+            }
+        })
+        val onGetStdImageListener = asyncBluetoothReader!!.setOnGetStdImageListener(object :
+            AsyncBluetoothReader.OnGetStdImageListener {
+            override fun onGetStdImageSuccess(data: ByteArray) {
+                Log.d("TAG", "onGetStdImageSuccess: ")
+//            val image = BitmapFactory.decodeByteArray(data, 0, data.size)
+//            fingerprintImage!!.setImageBitmap(image)
+//            //SaveImage(image);
+//            AddStatusList(getString(android.R.string.txt_getimageok))
+            }
+
+            override fun onGetStdImageFail() {
+                Log.d("TAG", "onGetStdImageFail: ")
+//            AddStatusList(getString(android.R.string.txt_getimagefail))
+            }
+        })
+        val onGetResImageListener = asyncBluetoothReader!!.setOnGetResImageListener(object :
+            AsyncBluetoothReader.OnGetResImageListener {
+            override fun onGetResImageSuccess(data: ByteArray) {
+                Log.d("TAG", "onGetResImageSuccess: ")
+                latestBTImage = data
+                val image = BitmapFactory.decodeByteArray(data, 0, data.size)
+                //featureBufferEnroll[fingerIndex] =
+                showBTFingerImage(image)
+
+                if (scanType == SCAN_TYPE_FINGERPRINT_MATCH) {
+                    processBTFPMatch()
+                } else {
+                    processBTFP()
+                }
+//            //SaveImage(image);
+//            AddStatusList(getString(android.R.string.txt_getimageok))
+            }
+
+            override fun onGetResImageFail() {
+                Log.d("TAG", "onGetResImageFail: ")
+//            AddStatusList(getString(android.R.string.txt_getimagefail))
+            }
+        })
+        val onUpTemplateListener = asyncBluetoothReader!!.setOnUpTemplateListener(object :
+            AsyncBluetoothReader.OnUpTemplateListener {
+            override fun onUpTemplateSuccess(model: ByteArray) {
+                latestBTProfile = model
+                if (scanType == SCAN_TYPE_FINGERPRINT_MATCH){
+                    processBTFPMatch()
+                } else {
+                    processBTFP()
+                }
+
+                Log.d("TAG", "onUpTemplateSuccess: ")
+
+                /*
+            if (worktype == 1) {
+                when (mFPFormat) {
+                    FPFormat.STD_TEMPLATE -> {
+                        System.arraycopy(model, 0, mMatData, 0, model.size)
+                        mMatSize = model.size
+                    }
+                    FPFormat.ANSI_378_2004 -> {
+                        //mMatString=FPFormat.getInstance().To_Ansi378_2004_Base64(model);
+                        //AddStatusList(mMatString);
+                        FPFormat.getInstance()
+                            .StdToAnsiIso(model, mMatData, FPFormat.ANSI_378_2004)
+                        mMatSize = mMatData.size
+                    }
+                    FPFormat.ISO_19794_2005 -> {
+                        //mMatString=FPFormat.getInstance().To_Iso19794_2005_Base64(model);
+                        //AddStatusList(mMatString);
+                        if (FPFormat.getInstance().StdToAnsiIso(model,
+                                    mMatData,
+                                    FPFormat.ISO_19794_2005))
+
+                        mMatSize = mMatData.size
+                    }
+                }
+                if (mRefSize > 0) {
+                    var score = 0
+                    val adat = ByteArray(512)
+                    val bdat = ByteArray(512)
+                    when (mFPFormat) {
+                        FPFormat.STD_TEMPLATE -> score =
+                            FPMatch.getInstance().MatchTemplate(mRefData, mMatData)
+                        FPFormat.ANSI_378_2004 -> {
+                            FPFormat.getInstance()
+                                .AnsiIsoToStd(mRefData, adat, FPFormat.ANSI_378_2004)
+                            FPFormat.getInstance()
+                                .AnsiIsoToStd(mMatData, bdat, FPFormat.ANSI_378_2004)
+                            score = FPMatch.getInstance().MatchTemplate(adat, bdat)
+                        }
+                        FPFormat.ISO_19794_2005 -> {
+                            FPFormat.getInstance()
+                                .AnsiIsoToStd(mRefData, adat, FPFormat.ISO_19794_2005)
+                            FPFormat.getInstance()
+                                .AnsiIsoToStd(mMatData, bdat, FPFormat.ISO_19794_2005)
+                            score = FPMatch.getInstance().MatchTemplate(adat, bdat)
+                        }
+                    }
+                    AddStatusList(getString(android.R.string.txt_matchscore) + score.toString())
+                }
+            } else {
+                AddStatusList(getString(android.R.string.txt_enrolok))
+                when (mFPFormat) {
+                    FPFormat.STD_TEMPLATE -> {
+                        System.arraycopy(model, 0, mRefData, 0, model.size)
+                        mRefSize = model.size
+                    }
+                    FPFormat.ANSI_378_2004 -> {
+                        //mRefString=FPFormat.getInstance().To_Ansi378_2004_Base64(model);
+                        //AddStatusList(mRefString);
+                        FPFormat.getInstance()
+                            .StdToAnsiIso(model, mRefData, FPFormat.ANSI_378_2004)
+                        mRefSize = mRefData.size
+                    }
+                    FPFormat.ISO_19794_2005 -> {
+                        //mRefString=FPFormat.getInstance().To_Iso19794_2005_Base64(model);
+                        //AddStatusList(mRefString);
+                        if (FPFormat.getInstance().StdToAnsiIso(model,
+                                    mRefData,
+                                    FPFormat.ISO_19794_2005)) AddStatusList("ISO_19794_2005")
+                        mRefSize = mRefData.size
+                    }
+                }
+            } */
+            }
+
+            override fun onUpTemplateFail() {
+//            if (worktype == 1) {
+//                AddStatusList(getString(android.R.string.txt_capturefail))
+//            } else {
+//                AddStatusList(getString(android.R.string.txt_enrolfail))
+//            }
+                Log.d("TAG", "onUpTemplateFail: ")
+            }
+        })
+        val onEnrolTemplateListener = asyncBluetoothReader!!.setOnEnrolTemplateListener(object :
+            AsyncBluetoothReader.OnEnrolTemplateListener {
+            override fun onEnrolTemplateSuccess(model: ByteArray) {
+//            System.arraycopy(model, 0, mRefData, 0, model.size)
+//            mRefSize = model.size
+//            AddStatusList(getString(android.R.string.txt_enrolok))
+                Log.d("TAG", "onEnrolTemplateSuccess: ${model.toString()}")
+            }
+
+            override fun onEnrolTemplateFail() {
+                Log.d("TAG", "onEnrolTemplateFail:")
+//            AddStatusList(getString(android.R.string.txt_enrolfail))
+            }
+        })
+        val onCaptureTemplateListener = asyncBluetoothReader!!.setOnCaptureTemplateListener(object :
+            AsyncBluetoothReader.OnCaptureTemplateListener {
+            override fun onCaptureTemplateSuccess(model: ByteArray) {
+//            System.arraycopy(model, 0, mMatData, 0, model.size)
+//            mMatSize = model.size
+//            AddStatusList(getString(android.R.string.txt_captureok))
+//            if (mRefSize > 0) {
+//                val score =
+//                    asyncBluetoothReader!!.bluetoothReader.MatchTemplate(mRefData, mMatData)
+//                AddStatusList(getString(android.R.string.txt_matchscore) + score.toString())
+//            }
+            }
+
+            override fun onCaptureTemplateFail() {
+//            AddStatusList(getString(android.R.string.txt_capturefail))
+            }
+        })
     }
 }

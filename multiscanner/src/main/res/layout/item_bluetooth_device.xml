@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:text="SHBT202330023"
     android:textColor="#000"
-    android:paddingVertical="8dp"
+    android:paddingVertical="10dp"
     android:gravity="center_vertical"
     android:paddingEnd="10dp"
     android:background="?selectableItemBackgroundBorderless"

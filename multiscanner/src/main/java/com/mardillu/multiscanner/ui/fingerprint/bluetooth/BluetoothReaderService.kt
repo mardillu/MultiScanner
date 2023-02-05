@@ -262,7 +262,7 @@ class BluetoothReaderService(context: Context?, handler: Handler) {
                     // successful connection or an exception
                     mmServerSocket!!.accept()
                 } catch (e: IOException) {
-                    Log.e(TAG, "accept() failed", e)
+                    Log.e(TAG, "accept() failed xyz", e)
                     break
                 }
 

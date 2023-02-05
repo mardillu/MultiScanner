@@ -12,6 +12,7 @@ import com.mardillu.multiscanner.databinding.ActivityMainBinding
 import com.mardillu.multiscanner.ui.camera.OpticalScanner
 import com.mardillu.multiscanner.ui.fingerprint.FingerprintScanner
 import com.mardillu.multiscanner.utils.*
+import java.nio.charset.Charset
 
 
 class MainActivity : AppCompatActivity() {
@@ -26,14 +27,21 @@ class MainActivity : AppCompatActivity() {
             enrolFinger.setOnClickListener {
                 val intent = Intent(this@MainActivity, FingerprintScanner::class.java)
                 intent.putExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_FINGERPRINT_ENROL)
+                intent.putExtra(EXTRA_FINGERPRINT_SOURCE, SOURCE_EXTERNAL_BT_READER)
                 enrol.launch(intent)
             }
 
             verifyFinger.setOnClickListener {
                 val intent = Intent(this@MainActivity, FingerprintScanner::class.java)
                 intent.putExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_FINGERPRINT_MATCH)
-                intent.putExtra(EXTRA_RIGHT_THUMB_PROFILE, featureBufferEnroll[0])
-                intent.putExtra(EXTRA_LEFT_THUMB_PROFILE, featureBufferEnroll[1])
+                intent.putExtra(EXTRA_RIGHT_THUMB_PROFILE,
+                        featureBufferEnroll[0])
+                intent.putExtra(EXTRA_LEFT_THUMB_PROFILE,
+                        featureBufferEnroll[1])
+                intent.putExtra(EXTRA_FINGERPRINT_SOURCE, SOURCE_EXTERNAL_BT_READER)
+                intent.putExtra(EXTRA_FARMERS_FINGERPRINT_PROFILES,
+                        arrayListOf(featureBufferEnroll[0]?.toString(Charset.defaultCharset()),
+                                featureBufferEnroll[1]?.toString(Charset.defaultCharset())))
                 verify.launch(intent)
             }
 

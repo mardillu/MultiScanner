@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/connect_new_device"
+        android:title="Connect New Bluetooth Device"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/use_inbuilt_reader"
+        android:title="Use On-Device Scanner"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/use_bluetooth_reader"
+        android:title="Use Bluetooth Scanner"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/close"
+        android:title="Close"
+        app:showAsAction="always" />
+</menu>
