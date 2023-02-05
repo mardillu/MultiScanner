@@ -159,6 +159,19 @@ class FingerprintScanner : AppCompatActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if(resultCode == RESULT_OK) {
+            when(requestCode){
+                REQUEST_ENABLE_BT -> {
+                    initBluetooth()
+                }
+            }
+        }
+    }
+
     private fun getByteArrayFromStringArray(profiles: ArrayList<String>?) {
         profiles?.forEach {
             val byteArray = it.toCustomByteArray()
@@ -167,41 +180,46 @@ class FingerprintScanner : AppCompatActivity() {
     }
 
     private fun initBluetooth(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            when {
-                ContextCompat.checkSelfPermission(
-                        this@FingerprintScanner,
-                        Manifest.permission.BLUETOOTH_SCAN
-                ) == PackageManager.PERMISSION_GRANTED -> {
-                    // You can use the API that requires the permission.
-                }
-                else -> {
-                    val requestPermissionLauncher =
-                        registerForActivityResult(ActivityResultContracts.RequestPermission()
-                        ) { isGranted: Boolean ->
-                            if (isGranted) {
-                                initBluetooth()
-                            } else {
-                                initBluetooth()
-                            }
-                        }
-                    requestPermissionLauncher.launch(
-                            Manifest.permission.BLUETOOTH_CONNECT
-                    )
-                    return
-                }
-            }
+        if(ContextCompat.checkSelfPermission(
+                this@FingerprintScanner,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED) {
+            // You can use the API that requires the permission.
         } else {
-            //initBluetooth()
+            val PERMISSIONS = arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.BLUETOOTH_SCAN,
+            )
+            val requestPermissionLauncher =
+                registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
+                    if (isGranted.containsValue(false)) {
+                        initBluetooth()
+                    } else {
+                        initBluetooth()
+                    }
+                }
+            requestPermissionLauncher.launch(
+                    PERMISSIONS
+            )
+            return
         }
+
+        // Get the local Bluetooth adapter
+        mBtAdapter = BluetoothAdapter.getDefaultAdapter()
+
+        if (mBtAdapter?.isEnabled == false) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+            return
+        }
+
         bluetoothBinding = DialogDeviceListBinding.inflate(layoutInflater)
         builder = Dialog(this@FingerprintScanner, R.style.AlertDialogTheme)
         Objects.requireNonNull(builder.window)?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         builder.setContentView(bluetoothBinding.root)
         builder.setCancelable(false)
 
-        // Get the local Bluetooth adapter
-        mBtAdapter = BluetoothAdapter.getDefaultAdapter()
         // Get a set of currently paired devices
         pairedDevices = ArrayList(mBtAdapter!!.bondedDevices)
 
