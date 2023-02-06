@@ -186,11 +186,16 @@ class FingerprintScanner : AppCompatActivity() {
         ) == PackageManager.PERMISSION_GRANTED) {
             // You can use the API that requires the permission.
         } else {
-            val PERMISSIONS = arrayOf(
+            val PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.BLUETOOTH_CONNECT,
                     Manifest.permission.BLUETOOTH_SCAN,
-            )
+            ) else
+                arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                )
             val requestPermissionLauncher =
                 registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
                     if (isGranted.containsValue(false)) {
