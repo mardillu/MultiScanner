@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bt_dialog"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/layout_devices_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scan bag weight in 3 simple steps"
+            android:textColor="#000"
+            android:textSize="20sp"
+            android:layout_marginBottom="10dp"
+            android:textStyle="bold"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1. Align the scale reading into the center of the RED rectangle then click 'Detect Weight'"
+            android:textColor="#000"
+            android:textSize="18sp"
+            android:layout_marginBottom="10dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2. Type the scanned weight in the input field to confirm"
+            android:textColor="#000"
+            android:textSize="18sp"
+            android:layout_marginBottom="10dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3. Click 'Confirm Bag Weight' to finish"
+            android:textColor="#000"
+            android:textSize="18sp"
+            android:layout_marginBottom="10dp"/>
+
+        <CheckBox 
+            android:id="@+id/show_again"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Do not show this again"
+            android:layout_marginBottom="20dp"/>
+
+        <Button
+            android:id="@+id/dismiss"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:textAllCaps="false"
+            android:text="Dismiss"
+            android:textColor="#2B9D5C"
+            android:background="@drawable/bg_rounded_corners_outline" />
+    </LinearLayout>
+
+</RelativeLayout>

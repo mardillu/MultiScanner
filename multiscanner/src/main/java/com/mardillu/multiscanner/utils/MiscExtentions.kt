@@ -30,6 +30,7 @@ fun Context.createImageFile(c: Context, name: String? = ""): File {
 }
 
 fun String.toCustomByteArray(): ByteArray {
+    if (this.isEmpty()) return ByteArray(0)
     val byteArray = this.replace("[","").replace("]","").split(",")
     val bytes = ByteArray(byteArray.size)
     byteArray.forEachIndexed { i, it, ->

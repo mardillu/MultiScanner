@@ -1,15 +1,22 @@
 package com.mardillu.multiscanner.ui.camera
 
+import android.app.Dialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.preference.PreferenceManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
+import com.mardillu.multiscanner.R
 import com.mardillu.multiscanner.databinding.ActivityOcrScannerBinding
+import com.mardillu.multiscanner.databinding.DialogDeviceListBinding
+import com.mardillu.multiscanner.databinding.DialogOcrGuideBinding
 import com.mardillu.multiscanner.utils.*
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.PictureResult
@@ -19,9 +26,10 @@ import org.opencv.android.OpenCVLoader
 import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
+import java.util.*
 
 
-class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2{
+class OpticalScanner : AppCompatActivity() {
 
     private lateinit var binding: ActivityOcrScannerBinding
     private var ocrImageName = ""
@@ -29,11 +37,16 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
     var isRunning = false
     var detectedCount = 0
     var isWeightTyped = false
+    private lateinit var sp: SharedPreferences
+    private lateinit var editor: SharedPreferences.Editor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityOcrScannerBinding.inflate(LayoutInflater.from(this))
         setContentView(binding.root)
+
+        sp = PreferenceManager.getDefaultSharedPreferences(this)
+        editor = sp.edit()
 
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "onCreate: Unable to init openCV")
@@ -54,6 +67,14 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
 
         binding.quantityEdit.addTextChangedListener(textChangedListener)
 
+        binding.detectWeight.setOnClickListener {
+            binding.cameraView.takePicture()
+            binding.textResult.text = "Weight scanned"
+            binding.textPrompts.text = ""
+            updateProgress(50.0)
+            showAid()
+        }
+
         //binding.cameraView.filter = MultiFilter(Filters.BLACK_AND_WHITE.newInstance(), Filters.CONTRAST.newInstance(),)
 
         when (intent.getIntExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_BARCODE)) {
@@ -68,7 +89,7 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
             SCAN_TYPE_OCR -> {
                 binding.cameraView.addFrameProcessor(CameraFrameProcessors.OCRProcessor(this@OpticalScanner) { string ->
                     string?.let { url ->
-                        updateUITextDetected(url)
+                        //updateUITextDetected(url)
                     }
                 })
             }
@@ -76,7 +97,8 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
 
         updateUIDetectingText()
         setCameraListeners()
-        startAidedInputCountDown()
+        showGuideDialog()
+        //startAidedInputCountDown()
     }
 
     private fun startAidedInputCountDown(){
@@ -84,10 +106,14 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
     }
 
     private fun showAid() {
-        if ((!isRunning && detectedCount >= 1) || detectedCount > 2) {
-            runOnUiThread {
-                binding.layoutManualInput.show()
-            }
+//        if ((!isRunning && detectedCount >= 1) || detectedCount > 2) {
+//            runOnUiThread {
+//                binding.layoutManualInput.show()
+//            }
+//        }
+
+        runOnUiThread {
+            binding.layoutManualInput.show()
         }
     }
 
@@ -175,7 +201,7 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
             binding.quantityEdit.removeTextChangedListener(textChangedListener)
             binding.quantityEdit.setText("")
             textResult.text = ""
-            textPrompts.text = "Detecting weight..."
+            textPrompts.text = "Click 'Detect Weight' to start detecting..."
             rescanScale.hide()
             completeAction.isEnabled = false
             updateProgress()
@@ -220,30 +246,30 @@ class OpticalScanner : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewLis
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
+    private fun showGuideDialog() {
+        val showGuide = sp.getBoolean(PREF_SHOW_GUIDE_DIALOG, true)
+        if (!showGuide){
+            return
+        }
+        val guideBinding = DialogOcrGuideBinding.inflate(layoutInflater)
+        val builder = android.app.Dialog(this@OpticalScanner, R.style.AlertDialogTheme)
+        Objects.requireNonNull(builder.window)?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        builder.setContentView(guideBinding.root)
+        builder.setCancelable(false)
+
+        guideBinding.dismiss.setOnClickListener {
+            if (guideBinding.showAgain.isChecked){
+                editor.putBoolean(PREF_SHOW_GUIDE_DIALOG, false)
+                editor.commit()
+            }
+            builder.dismiss()
+        }
+
+        builder.show()
+    }
+
     companion object {
         const val TAG = "CameraXDemo"
-    }
-
-    override fun onCameraViewStarted(width: Int, height: Int) {
-
-    }
-
-    override fun onCameraViewStopped() {
-
-    }
-
-    override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat? {
-        val mInput = inputFrame?.gray()
-        Imgproc.erode(inputFrame?.gray(),
-                mInput,
-                Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(2.0, 2.0)))
-
-        Imgproc.dilate(mInput,
-                mInput,
-                Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(2.0, 2.0)))
-        analyser.analyse()
-
-        return inputFrame?.gray()
     }
 
     private val textChangedListener = object : TextWatcher {

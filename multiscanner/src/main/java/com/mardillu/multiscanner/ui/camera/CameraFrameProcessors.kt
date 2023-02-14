@@ -132,7 +132,7 @@ class CameraFrameProcessors {
                     var gray = (0.2989 * R + 0.5870 * G + 0.1140 * B).toInt()
 
                     // use 128 as threshold, above -> white, below -> black
-                    gray = if (gray > 64) 0 else 255
+                    gray = if (gray > 128) 0 else 255
                     // set new pixel color to output bitmap
                     bmOut.setPixel(x, y, Color.argb(A, gray, gray, gray))
                 }
@@ -222,21 +222,23 @@ class CameraFrameProcessors {
             //144, 176
             val image = cropImage(img)
 
-            val mInput = Mat(image.height, image.width, CvType.CV_8UC3)
+            val bnw = createInvertedBlackAndWhite(image)
 
-            Utils.bitmapToMat(image, mInput)
+            val mInput = Mat(bnw.height, bnw.width, CvType.CV_8UC3)
+
+            Utils.bitmapToMat(bnw, mInput)
 
             val trim = if(Build.MODEL == "Q807") 3.0 else 7.0
            // image.close()
-            Imgproc.erode(mInput,
-                    mInput,
-                    Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(trim, trim)))
-
-//            Imgproc.dilate(mInput,
+//            Imgproc.erode(mInput,
 //                    mInput,
-//                    Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, Size(trim, trim)))
+//                    Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(trim, trim)))
 
-            val outBitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
+            Imgproc.dilate(mInput,
+                    mInput,
+                    Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, Size(trim, trim)))
+
+            val outBitmap = Bitmap.createBitmap(bnw.width, bnw.height, Bitmap.Config.ARGB_8888)
             Utils.matToBitmap(mInput, outBitmap)
 
             return outBitmap

@@ -51,7 +51,7 @@ class FingerprintScanner : AppCompatActivity() {
     private var executor = Executors.newSingleThreadExecutor()
     private val featureBufferEnroll: ArrayList<ByteArray?> = arrayListOf(ByteArray(1), ByteArray(1))
     private var featureBufferMatch: ByteArray? = ByteArray(1)
-    private var allFarmersFingerProfiles: ArrayList<ByteArray> = ArrayList()
+    private var allFarmersFingerProfiles: ArrayList<ByteArray?> = ArrayList()
     private lateinit var mxFingerAlg: MxISOFingerAlg
     private lateinit var mxMscBigFingerApi: MxMscBigFingerApi
     private var mBtAdapter: BluetoothAdapter? = null
@@ -61,6 +61,7 @@ class FingerprintScanner : AppCompatActivity() {
     private var scanType = SCAN_TYPE_FINGERPRINT_ENROL
     private var fingerIndex = 0
     var lfdEnabled = false
+    val compatibilityMode = true
 
     var latestBTImage: ByteArray? = null
     var latestBTProfile: ByteArray? = null
@@ -115,6 +116,8 @@ class FingerprintScanner : AppCompatActivity() {
                 featureBufferEnroll.clear()
                 featureBufferEnroll.add(rightProfile)
                 featureBufferEnroll.add(leftProfile)
+                allFarmersFingerProfiles.add(rightProfile)
+                allFarmersFingerProfiles.add(leftProfile)
 
                 showFingerImage(null)
 
@@ -183,19 +186,31 @@ class FingerprintScanner : AppCompatActivity() {
         if(ContextCompat.checkSelfPermission(
                 this@FingerprintScanner,
                 Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED) {
-            // You can use the API that requires the permission.
-        } else {
-            val PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) arrayOf(
+        ) != PackageManager.PERMISSION_GRANTED) {
+            val PERMISSIONS = arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION,
+            )
+            val requestPermissionLauncher =
+                registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
+                    if (isGranted.containsValue(false)) {
+                        initBluetooth()
+                    } else {
+                        initBluetooth()
+                    }
+                }
+            requestPermissionLauncher.launch(
+                    PERMISSIONS
+            )
+            return
+        } else if (ContextCompat.checkSelfPermission(
+                    this@FingerprintScanner,
+                    Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val PERMISSIONS = arrayOf(
                     Manifest.permission.BLUETOOTH_CONNECT,
                     Manifest.permission.BLUETOOTH_SCAN,
-            ) else
-                arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                )
+            )
             val requestPermissionLauncher =
                 registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
                     if (isGranted.containsValue(false)) {
@@ -252,8 +267,10 @@ class FingerprintScanner : AppCompatActivity() {
             preBluetoothDeviceAddress = null
         }
         fingerIndex = 0
-        featureBufferEnroll[0] = null
-        featureBufferEnroll[1] = null
+        if (scanType == SCAN_TYPE_FINGERPRINT_ENROL) {
+            featureBufferEnroll[0] = null
+            featureBufferEnroll[1] = null
+        }
         executor.shutdown()
         asyncBluetoothReader!!.start()
         disableActionButton()
@@ -268,12 +285,18 @@ class FingerprintScanner : AppCompatActivity() {
         try {
             unregisterReceiver(mReceiver)
         }catch (e: Exception){}
-        featureBufferEnroll[0] = null
-        featureBufferEnroll[1] = null
+        if (scanType == SCAN_TYPE_FINGERPRINT_ENROL) {
+            featureBufferEnroll[0] = null
+            featureBufferEnroll[1] = null
+        }
         disableActionButton()
         showPromptRightThumb()
         updateProgress(0.0)
-        enrolFinger(0)
+        if (scanType == SCAN_TYPE_FINGERPRINT_MATCH){
+            matchFinger()
+        } else {
+            enrolFinger(0)
+        }
     }
 
     private fun enrolFinger(index: Int) {
@@ -359,7 +382,8 @@ class FingerprintScanner : AppCompatActivity() {
                     enrolFinger(index)
                     return@execute
                 } else {
-                    if (!isFingerPrintUniqueLegacy(profile, allFarmersFingerProfiles)) {
+                    if (!isFingerPrintUniqueLegacy(profile, allFarmersFingerProfiles) ||
+                        !isFingerPrintUnique(profile, allFarmersFingerProfiles)) {
                         showErrorToast(
                                 "Looks like this finger has been scanned already. Please scan a different finger",
                         )
@@ -409,9 +433,10 @@ class FingerprintScanner : AppCompatActivity() {
             enrolBTFinger()
             return
         } else {
-            val isUnique = isFingerPrintUnique(latestBTProfile, allFarmersFingerProfiles)
+            val isUnique = !isFingerPrintUnique(latestBTProfile, allFarmersFingerProfiles) ||
+                    !isFingerPrintUniqueLegacy(latestBTProfile, allFarmersFingerProfiles)
 
-            if (!isUnique) {
+            if (isUnique) {
                 showErrorToast(
                         "Looks like this finger has been scanned already. Please scan a different finger",
                 )
@@ -453,9 +478,10 @@ class FingerprintScanner : AppCompatActivity() {
             enrolBTFinger()
             return
         } else {
-            val isUnique = isFingerPrintUnique(latestBTProfile, allFarmersFingerProfiles)
+            val isUnique = !isFingerPrintUnique(latestBTProfile, allFarmersFingerProfiles) ||
+                    !isFingerPrintUniqueLegacy(latestBTProfile, allFarmersFingerProfiles)
 
-            if (!isUnique) {
+            if (isUnique) {
                 showSuccessToast(
                         "Fingerprint matched found",
                 )
@@ -550,11 +576,9 @@ class FingerprintScanner : AppCompatActivity() {
                     return@execute
                 }
                 //step 2 match finger feature
-                val match =
-                    mxFingerAlg.match(featureBufferEnroll[0]!!, featureBufferMatch!!, 3)
-                val match2 =
-                    mxFingerAlg.match(featureBufferEnroll[1]!!, featureBufferMatch!!, 3)
-                if (match == 0 || match2 == 0) {
+                val match = !isFingerPrintUniqueLegacy(featureBufferMatch!!, featureBufferEnroll) ||
+                        !isFingerPrintUnique(featureBufferMatch!!, featureBufferEnroll)
+                if (match) {
                     showSuccessToast(
                         "Fingerprint matched found",
                     )
@@ -600,7 +624,7 @@ class FingerprintScanner : AppCompatActivity() {
         }
     }
 
-    private fun isFingerPrintUnique(compare: ByteArray?, with: ArrayList<ByteArray>): Boolean {
+    private fun isFingerPrintUnique(compare: ByteArray?, with: ArrayList<ByteArray?>): Boolean {
         if (compare == null){
             return true
         }
@@ -621,8 +645,10 @@ class FingerprintScanner : AppCompatActivity() {
                 .AnsiIsoToStd(mMatData, bdat, FPFormat.ANSI_378_2004)
             val score = FPMatch.getInstance().MatchTemplate(adat, bdat)
             val scoreAlt = FPMatch.getInstance().MatchTemplate(compare, profile)
+            val scoreAlt2 = FPMatch.getInstance().MatchTemplate(compare, profile)
+            val scoreAlt3 = FPMatch.getInstance().MatchTemplate(compare, profile)
 
-            if (score >= 60 || scoreAlt >= 60){
+            if (score >= 60 || scoreAlt >= 60 || scoreAlt2 >= 60 || scoreAlt3 >= 60){
                 return false
             }
         }
@@ -630,7 +656,7 @@ class FingerprintScanner : AppCompatActivity() {
         return true
     }
 
-    private fun isFingerPrintUniqueLegacy(compare: ByteArray?, with: ArrayList<ByteArray>): Boolean {
+    private fun isFingerPrintUniqueLegacy(compare: ByteArray?, with: ArrayList<ByteArray?>): Boolean {
         if (compare == null){
             return true
         }
@@ -638,13 +664,27 @@ class FingerprintScanner : AppCompatActivity() {
         val mRefData = ByteArray(512)
         FPFormat.getInstance().StdToAnsiIso(compare, mRefData, FPFormat.ANSI_378_2004)
         for (profile in with){
+            val adat = ByteArray(512)
+            val bdat = ByteArray(512)
             val mMatData = ByteArray(512)
             FPFormat.getInstance().StdToAnsiIso(profile, mMatData, FPFormat.ANSI_378_2004)
+            FPFormat.getInstance()
+                .AnsiIsoToStd(mRefData, adat, FPFormat.ANSI_378_2004)
+            FPFormat.getInstance()
+                .AnsiIsoToStd(mMatData, bdat, FPFormat.ANSI_378_2004)
+
             val match =
-                mxFingerAlg.match(mRefData, mMatData, 3)
+                mxFingerAlg.match(adat, bdat, 3)
             val matchAlt =
-                mxFingerAlg.match(compare, profile, 3)
-            if (match == 0 || matchAlt == 0){
+                mxFingerAlg.match(compare, profile!!, 3)
+
+            val matchAlt2 =
+                mxFingerAlg.match(compare, mMatData, 3)
+
+            val matchAlt3 =
+                mxFingerAlg.match(mRefData, profile!!, 3)
+
+            if (match == 0 || matchAlt == 0 || matchAlt2 == 0 || matchAlt3 == 0){
                 return false
             }
         }

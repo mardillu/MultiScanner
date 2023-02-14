@@ -51,7 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:text="Align the scale reading into the center of the camera preview then steady your nerves"/>
+            android:text="Align the scale reading into the center of the camera preview then click 'Detect Weight'"/>
     </LinearLayout>
 
     <androidx.cardview.widget.CardView
@@ -66,32 +66,31 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-        <com.otaliastudios.cameraview.CameraView
-            android:id="@+id/cameraView"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:background="@drawable/bg_fingerprint"
-            app:cameraPictureSizeMaxHeight="200"
-            app:cameraFrameProcessingMaxHeight="200"
-            app:cameraGestureTap="autoFocus"
-            app:cameraGestureLongTap="autoFocus"
-            app:cameraGesturePinch="zoom"
-            app:cameraGestureScrollHorizontal="exposureCorrection"
-            app:cameraEngine="camera2"
-            app:cameraPreviewFrameRateExact="false"
-            app:cameraFacing="back"
-            app:cameraHdr="on"
-            app:cameraFlash="auto"
-            app:cameraWhiteBalance="auto"
-            app:cameraMode="picture"
-            app:cameraPictureFormat="jpeg"
-            app:cameraRequestPermissions="true"
-            app:cameraSnapshotMaxHeight="200"
-            app:cameraPlaySounds="false"
-            app:cameraExperimental="true"
-            >
+            <com.otaliastudios.cameraview.CameraView
+                android:id="@+id/cameraView"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:background="@drawable/bg_fingerprint"
+                app:cameraPictureSizeMaxHeight="200"
+                app:cameraFrameProcessingMaxHeight="200"
+                app:cameraGestureTap="autoFocus"
+                app:cameraGestureLongTap="autoFocus"
+                app:cameraGesturePinch="zoom"
+                app:cameraGestureScrollHorizontal="exposureCorrection"
+                app:cameraEngine="camera2"
+                app:cameraPreviewFrameRateExact="false"
+                app:cameraFacing="back"
+                app:cameraHdr="on"
+                app:cameraWhiteBalance="auto"
+                app:cameraMode="picture"
+                app:cameraPictureFormat="jpeg"
+                app:cameraRequestPermissions="true"
+                app:cameraSnapshotMaxHeight="200"
+                app:cameraPlaySounds="false"
+                app:cameraExperimental="true"
+                >
 
-        </com.otaliastudios.cameraview.CameraView>
+            </com.otaliastudios.cameraview.CameraView>
 
             <LinearLayout
                 android:id="@+id/guide"
@@ -112,6 +111,20 @@
 <!--            app:show_fps="true" />-->
     </androidx.cardview.widget.CardView>
 
+    <Button
+        android:id="@+id/detect_weight"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginTop="16dp"
+        android:paddingHorizontal="16dp"
+        android:textAllCaps="false"
+        android:text="Detect Weight"
+        android:textStyle="bold"
+        android:textColor="#2B9D5C"
+        android:layout_below="@+id/card_view"
+        android:layout_alignParentEnd="true"
+        android:background="@drawable/bg_rounded_corners_outline" />
+
     <TextView
         android:id="@+id/textResult"
         android:layout_width="match_parent"
@@ -121,7 +134,7 @@
         android:gravity="center"
         android:layout_gravity="center_horizontal"
         android:textStyle="bold"
-        android:layout_below="@+id/card_view"
+        android:layout_below="@+id/detect_weight"
         android:text="" />
 
     <TextView
@@ -162,7 +175,7 @@
             android:id="@+id/manual_input_txv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Having trouble scanning? Manually type the scale reading"
+            android:text="Type the weight to confirm"
             android:textColor="#000"
             android:gravity="center_vertical"/>
 
