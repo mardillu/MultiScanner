@@ -102,13 +102,16 @@
 
             </LinearLayout>
 
-        </RelativeLayout>
+            <ImageView
+                android:id="@+id/img_freeze"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_centerInParent="true"
+                android:visibility="gone"
+                android:scaleType="centerCrop"
+                />
 
-<!--        <org.opencv.android.JavaCameraView-->
-<!--            android:id="@+id/camera_view"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="200dp"-->
-<!--            app:show_fps="true" />-->
+        </RelativeLayout>
     </androidx.cardview.widget.CardView>
 
     <Button

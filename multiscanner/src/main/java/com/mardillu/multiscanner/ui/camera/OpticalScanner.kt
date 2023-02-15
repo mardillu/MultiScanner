@@ -1,6 +1,5 @@
 package com.mardillu.multiscanner.ui.camera
 
-import android.app.Dialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
@@ -15,17 +14,12 @@ import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
 import com.mardillu.multiscanner.R
 import com.mardillu.multiscanner.databinding.ActivityOcrScannerBinding
-import com.mardillu.multiscanner.databinding.DialogDeviceListBinding
 import com.mardillu.multiscanner.databinding.DialogOcrGuideBinding
 import com.mardillu.multiscanner.utils.*
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.VideoResult
-import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.OpenCVLoader
-import org.opencv.core.Mat
-import org.opencv.core.Size
-import org.opencv.imgproc.Imgproc
 import java.util.*
 
 
@@ -33,7 +27,6 @@ class OpticalScanner : AppCompatActivity() {
 
     private lateinit var binding: ActivityOcrScannerBinding
     private var ocrImageName = ""
-    private lateinit var analyser: CameraFrameProcessors.OCRProcessor
     var isRunning = false
     var detectedCount = 0
     var isWeightTyped = false
@@ -54,7 +47,7 @@ class OpticalScanner : AppCompatActivity() {
 
         binding.rescanScale.setOnClickListener {
             updateUIDetectingText()
-            showAid()
+            //showAid()
         }
 
         binding.completeAction.setOnClickListener {
@@ -71,6 +64,9 @@ class OpticalScanner : AppCompatActivity() {
             binding.cameraView.takePicture()
             binding.textResult.text = "Weight scanned"
             binding.textPrompts.text = ""
+            binding.rescanScale.show()
+            binding.detectWeight.hide()
+            binding.imgFreeze.show()
             updateProgress(50.0)
             showAid()
         }
@@ -129,6 +125,9 @@ class OpticalScanner : AppCompatActivity() {
                         result.toFile(file) {
                             ocrImageName = it?.path?:""
                         }
+                        result.toBitmap {
+                            binding.imgFreeze.setImageBitmap(it)
+                        }
                     }
 
                     override fun onVideoTaken(result: VideoResult) {
@@ -184,7 +183,10 @@ class OpticalScanner : AppCompatActivity() {
             return
         }
         if (result.isEmpty()){
-            updateUIDetectingText()
+            binding.textResult.text = "Weight scanned"
+            binding.textPrompts.text = ""
+            updateProgress(50.0)
+            binding.completeAction.isEnabled = false
             return
         }
         binding.apply {
@@ -204,6 +206,9 @@ class OpticalScanner : AppCompatActivity() {
             textPrompts.text = "Click 'Detect Weight' to start detecting..."
             rescanScale.hide()
             completeAction.isEnabled = false
+            imgFreeze.hide()
+            detectWeight.show()
+            layoutManualInput.hide()
             updateProgress()
             binding.quantityEdit.addTextChangedListener(textChangedListener)
         }

@@ -40,14 +40,14 @@
             android:text="3. Click 'Confirm Bag Weight' to finish"
             android:textColor="#000"
             android:textSize="18sp"
-            android:layout_marginBottom="10dp"/>
+            android:layout_marginBottom="20dp"/>
 
         <CheckBox 
             android:id="@+id/show_again"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Do not show this again"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="16dp"/>
 
         <Button
             android:id="@+id/dismiss"
