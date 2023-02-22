@@ -34,7 +34,9 @@ fun String.toCustomByteArray(): ByteArray {
     val byteArray = this.replace("[","").replace("]","").split(",")
     val bytes = ByteArray(byteArray.size)
     byteArray.forEachIndexed { i, it, ->
-        bytes[i] = it.trim().toByte()
+        if (it.isByte()) {
+            bytes[i] = it.trim().toByte()
+        }
     }
     return bytes
 }
@@ -50,4 +52,13 @@ fun ByteArray.toCustomArrayString(): String {
     }
     builder.append("]")
     return builder.toString()
+}
+
+fun String.isByte(): Boolean{
+    return try {
+        this.trim().toByte()
+        true
+    } catch (e: Exception){
+        false
+    }
 }
