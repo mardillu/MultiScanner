@@ -191,14 +191,6 @@ class FingerprintScanner : AppCompatActivity() {
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION,
             )
-            val requestPermissionLauncher =
-                registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
-                    if (isGranted.containsValue(false)) {
-                        initBluetooth()
-                    } else {
-                        initBluetooth()
-                    }
-                }
             requestPermissionLauncher.launch(
                     PERMISSIONS
             )
@@ -211,15 +203,8 @@ class FingerprintScanner : AppCompatActivity() {
                     Manifest.permission.BLUETOOTH_CONNECT,
                     Manifest.permission.BLUETOOTH_SCAN,
             )
-            val requestPermissionLauncher =
-                registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
-                    if (isGranted.containsValue(false)) {
-                        initBluetooth()
-                    } else {
-                        initBluetooth()
-                    }
-                }
-            requestPermissionLauncher.launch(
+
+            requestPermissionLauncher2.launch(
                     PERMISSIONS
             )
             return
@@ -317,6 +302,7 @@ class FingerprintScanner : AppCompatActivity() {
             //showbinding.progressBarDialog("Please press finger ")
             try {
                 //step 0 get finger image
+                mxMscBigFingerApi.reset()
                 val result =
                     mxMscBigFingerApi.getFingerImageBig(TIME_OUT)
                 if (!result.isSuccess) {
@@ -413,7 +399,7 @@ class FingerprintScanner : AppCompatActivity() {
     private fun enrolBTFinger() {
         latestBTImage = null
         latestBTProfile = null
-        Timer("SettingUp", false).schedule(1000) {
+        Timer("SettingUp", false).schedule(1500) {
             asyncBluetoothReader!!.GetImageAndTemplate()
         }
     }
@@ -801,9 +787,10 @@ class FingerprintScanner : AppCompatActivity() {
 
     private fun stopExecutor() {
         if (!executor.isShutdown){
-            executor.shutdown()
+            executor.shutdownNow()
         }
     }
+
     private fun setResultFailAndClose(){
         stopExecutor()
         val intent = Intent()
@@ -1197,4 +1184,22 @@ class FingerprintScanner : AppCompatActivity() {
             }
         })
     }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
+            if (isGranted.containsValue(false)) {
+                initBluetooth()
+            } else {
+                initBluetooth()
+            }
+        }
+
+    private val requestPermissionLauncher2 =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
+            if (isGranted.containsValue(false)) {
+                initBluetooth()
+            } else {
+                initBluetooth()
+            }
+        }
 }
