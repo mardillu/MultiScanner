@@ -271,7 +271,7 @@ class FingerprintScanner : AppCompatActivity() {
             featureBufferEnroll[0] = null
             featureBufferEnroll[1] = null
         }
-        executor.shutdown()
+        stopExecutor()
         asyncBluetoothReader!!.start()
         disableActionButton()
         showPromptRightThumb()
@@ -786,6 +786,7 @@ class FingerprintScanner : AppCompatActivity() {
     }
 
     private fun setResultSuccessfulAndClose(){
+        stopExecutor()
         val intent = Intent()
         if (scanType == SCAN_TYPE_FINGERPRINT_MATCH) {
             setResult(RESULT_MATCH_FOUND, intent)
@@ -798,7 +799,13 @@ class FingerprintScanner : AppCompatActivity() {
         finish()
     }
 
+    private fun stopExecutor() {
+        if (!executor.isShutdown){
+            executor.shutdown()
+        }
+    }
     private fun setResultFailAndClose(){
+        stopExecutor()
         val intent = Intent()
         if (scanType == SCAN_TYPE_FINGERPRINT_MATCH) {
             setResult(RESULT_MATCH_FAILED, intent)
