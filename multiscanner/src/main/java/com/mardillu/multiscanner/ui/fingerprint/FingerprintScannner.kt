@@ -41,6 +41,9 @@ import org.zz.jni.FingerLiveApi
 import java.util.*
 import java.util.concurrent.Executors
 import kotlin.concurrent.schedule
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.analytics.ktx.logEvent
+import com.google.firebase.ktx.Firebase
 
 
 class FingerprintScanner : AppCompatActivity() {
@@ -62,6 +65,8 @@ class FingerprintScanner : AppCompatActivity() {
     private var fingerIndex = 0
     var lfdEnabled = false
     val compatibilityMode = true
+    private val firebaseAnalytics = Firebase.analytics
+    private val pid = System.currentTimeMillis()
 
     var latestBTImage: ByteArray? = null
     var latestBTProfile: ByteArray? = null
@@ -283,7 +288,7 @@ class FingerprintScanner : AppCompatActivity() {
             enrolFinger(0)
         }
     }
-
+    var testCounter = 0
     private fun enrolFinger(index: Int) {
 //        if(builder.isShowing){
 //            builder.dismiss()
@@ -302,7 +307,6 @@ class FingerprintScanner : AppCompatActivity() {
             //showbinding.progressBarDialog("Please press finger ")
             try {
                 //step 0 get finger image
-                mxMscBigFingerApi.reset()
                 val result =
                     mxMscBigFingerApi.getFingerImageBig(TIME_OUT)
                 if (!result.isSuccess) {
@@ -330,6 +334,7 @@ class FingerprintScanner : AppCompatActivity() {
                         showErrorToast(
                             "LFD Error. Try again",
                         )
+                        logEvent(0, "LFD init Error")
                         enrolFinger(index)
                         return@execute
                     }
@@ -337,6 +342,7 @@ class FingerprintScanner : AppCompatActivity() {
                         showErrorToast(
                             "LFD Error, no finger detected. Try again",
                         )
+                        logEvent(0, "LFD Error, no finger detected")
                         enrolFinger(index)
                         return@execute
                     }
@@ -344,10 +350,11 @@ class FingerprintScanner : AppCompatActivity() {
                 val qualityScore =
                     mxFingerAlg.getQualityScore(image.data, image.width, image.height)
                 updateProgress(qualityScore.toDouble())
-                if (qualityScore < 70) {
+                if (qualityScore < 50) {
                     showErrorToast(
                         "Quality too low. Scan again",
                     )
+                    logEvent(0, "quality less than 50", qualityScore)
                     enrolFinger(index)
                     return@execute
                 } else {
@@ -365,6 +372,7 @@ class FingerprintScanner : AppCompatActivity() {
                     showErrorToast(
                         "Enrollment failed. Try again",
                     )
+                    logEvent(0, "could not extract profile from image")
                     enrolFinger(index)
                     return@execute
                 } else {
@@ -373,6 +381,7 @@ class FingerprintScanner : AppCompatActivity() {
                         showErrorToast(
                                 "Looks like this finger has been scanned already. Please scan a different finger",
                         )
+                        logEvent(0, "Thumb already scanned")
                         enrolFinger(index)
                         return@execute
                     }
@@ -382,17 +391,30 @@ class FingerprintScanner : AppCompatActivity() {
                             "Right thumb captured successfully",
                         )
                         allFarmersFingerProfiles.add(profile)
+                        logEvent(1, "Right thumb scanned")
                         enrolFinger(1)
                     } else {
                         showSuccessToast(
                             "Enrollment complete",
                         )
+                        logEvent(1, "Left thumb scanned")
                         enableActionButton()
                     }
                 }
             } finally {
                 //dismissbinding.progressBarDialog()
             }
+        }
+    }
+
+    private fun logEvent(result: Int, reason: String, score: Int = -1) {
+        firebaseAnalytics.logEvent("fingerprint_scan") {
+            param("scan_type", scanType.toString())
+            param("pid", pid)
+            param("scan_source", scannerSource.toString())
+            param("scan_result", result.toString())
+            param("reason_for_result", reason)
+            param("score", score.toString())
         }
     }
 
@@ -412,10 +434,11 @@ class FingerprintScanner : AppCompatActivity() {
         val qualityScore =
             mxFingerAlg.getQualityScore(latestBTImage, bmp.width, bmp.height)
         updateProgress(qualityScore.toDouble())
-        if (qualityScore < 60) {
+        if (qualityScore < 50) {
             showErrorToast(
                     "Quality too low. Scan again",
             )
+            logEvent(0, "quality less than 50", qualityScore)
             enrolBTFinger()
             return
         } else {
@@ -426,6 +449,7 @@ class FingerprintScanner : AppCompatActivity() {
                 showErrorToast(
                         "Looks like this finger has been scanned already. Please scan a different finger",
                 )
+                logEvent(0, "Thumb already scanned")
                 enrolBTFinger()
                 return
             }
@@ -435,12 +459,13 @@ class FingerprintScanner : AppCompatActivity() {
                 showSuccessToast(
                         "Enrollment complete",
                 )
+                logEvent(1, "Left thumb scanned")
                 enableActionButton()
             } else {
                 showSuccessToast(
                         "Right thumb captured successfully",
                 )
-
+                logEvent(1, "Right thumb scanned")
                 allFarmersFingerProfiles.add(latestBTProfile!!)
                 showPromptLeftThumb()
                 fingerIndex += 1
@@ -457,10 +482,11 @@ class FingerprintScanner : AppCompatActivity() {
         val qualityScore =
             mxFingerAlg.getQualityScore(latestBTImage, bmp.width, bmp.height)
         updateProgress(qualityScore.toDouble())
-        if (qualityScore < 60) {
+        if (qualityScore < 50) {
             showErrorToast(
                     "Quality too low. Scan again",
             )
+            logEvent(0, "quality less than 50", qualityScore)
             enrolBTFinger()
             return
         } else {
@@ -471,11 +497,13 @@ class FingerprintScanner : AppCompatActivity() {
                 showSuccessToast(
                         "Fingerprint matched found",
                 )
+                logEvent(1, "Match found")
                 enableActionButton()
             } else {
                 showErrorToast(
                         "Match failed. Try again",
                 )
+                logEvent(0, "Match failed")
                 enrolBTFinger()
             }
         }
@@ -523,6 +551,7 @@ class FingerprintScanner : AppCompatActivity() {
                         showErrorToast(
                             "LFD Error, try again",
                         )
+                        logEvent(0, "LFD init Error")
                         matchFinger(true)
                         return@execute
                     }
@@ -530,6 +559,7 @@ class FingerprintScanner : AppCompatActivity() {
                         showErrorToast(
                             "LFD Error, no finger detected. Try again",
                             )
+                        logEvent(0, "LFD Error, no finger detected")
                         matchFinger(true)
                         return@execute
                     }
@@ -537,10 +567,11 @@ class FingerprintScanner : AppCompatActivity() {
                 val qualityScore =
                     mxFingerAlg.getQualityScore(image.data, image.width, image.height)
                 updateProgress(qualityScore.toDouble())
-                if (qualityScore < 70) {
+                if (qualityScore < 50) {
                     showErrorToast(
                         "Quality too low. Scan again",
                     )
+                    logEvent(0, "quality less than 50", qualityScore)
                     matchFinger(true)
                     return@execute
                 } else {
@@ -558,6 +589,7 @@ class FingerprintScanner : AppCompatActivity() {
                     showErrorToast(
                         "Extract failed. Try again",
                     )
+                    logEvent(0, "could not extract profile from image")
                     matchFinger(true)
                     return@execute
                 }
@@ -568,11 +600,13 @@ class FingerprintScanner : AppCompatActivity() {
                     showSuccessToast(
                         "Fingerprint matched found",
                     )
+                    logEvent(1, "Match found")
                     enableActionButton()
                 } else {
                     showErrorToast(
                         "Match failed. Try again",
                     )
+                    logEvent(0, "Match failed")
                     matchFinger(true)
                 }
             } finally {
@@ -611,6 +645,9 @@ class FingerprintScanner : AppCompatActivity() {
     }
 
     private fun isFingerPrintUnique(compare: ByteArray?, with: ArrayList<ByteArray?>): Boolean {
+        if (compatibilityMode) {
+            return isFingerPrintUniqueLegacy(compare, with)
+        }
         if (compare == null){
             return true
         }
@@ -669,8 +706,13 @@ class FingerprintScanner : AppCompatActivity() {
 
             val matchAlt3 =
                 mxFingerAlg.match(mRefData, profile!!, 3)
+            val score = FPMatch.getInstance().MatchTemplate(adat, bdat)
+            val scoreAlt = FPMatch.getInstance().MatchTemplate(compare, profile)
+            val scoreAlt2 = FPMatch.getInstance().MatchTemplate(compare, profile)
+            val scoreAlt3 = FPMatch.getInstance().MatchTemplate(compare, profile)
 
-            if (match == 0 || matchAlt == 0 || matchAlt2 == 0 || matchAlt3 == 0){
+            if (match == 0 || matchAlt == 0 || matchAlt2 == 0 || matchAlt3 == 0 ||
+                score >= 60 || scoreAlt >= 60 || scoreAlt2 >= 60 || scoreAlt3 >= 60) {
                 return false
             }
         }
