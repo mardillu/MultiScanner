@@ -416,6 +416,7 @@ class FingerprintScanner : AppCompatActivity() {
             param("reason_for_result", reason)
             param("score", score.toString())
         }
+        Log.d("TAG", "logEvent: Logging GA Event")
     }
 
     private fun enrolBTFinger() {
@@ -748,7 +749,7 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.progressBar.setProgressPercentage(perc, true)
 
-            if (perc >= 60.0) {
+            if (perc >= 50.0) {
                 binding.progressBar.setBackgroundDrawableColor(Color.parseColor("#D5C6F6DB"))
                 binding.progressBar.setBackgroundTextColor(Color.parseColor("#2B9D5C"))
                 binding.progressBar.setProgressDrawableColor(Color.parseColor("#2B9D5C"))
