@@ -355,15 +355,15 @@ class FingerprintScanner : AppCompatActivity() {
                 val qualityScore =
                     mxFingerAlg.getQualityScore(image.data, image.width, image.height)
                 updateProgress(qualityScore.toDouble())
-                if (qualityScore < 50) {
+                if (qualityScore < 15) {
                     showErrorToast(
                         "Quality too low. Scan again",
                     )
-                    logEvent(0, "quality less than 50", qualityScore)
+                    logEvent(0, "quality less than 15", qualityScore)
                     enrolFinger(index)
                     return@execute
                 } else {
-
+                    logEvent(1, "quality over 15", qualityScore)
                 }
 
                 //step 1 extract finger feature
@@ -440,14 +440,15 @@ class FingerprintScanner : AppCompatActivity() {
         val qualityScore =
             mxFingerAlg.getQualityScore(latestBTImage, bmp.width, bmp.height)
         updateProgress(qualityScore.toDouble())
-        if (qualityScore < 50) {
+        if (qualityScore < 15) {
             showErrorToast(
                     "Quality too low. Scan again",
             )
-            logEvent(0, "quality less than 50", qualityScore)
+            logEvent(0, "quality less than 15", qualityScore)
             enrolBTFinger()
             return
         } else {
+            logEvent(1, "quality over 15", qualityScore)
             val isUnique = !isFingerPrintUnique(latestBTProfile, allFarmersFingerProfiles) ||
                     !isFingerPrintUniqueLegacy(latestBTProfile, allFarmersFingerProfiles)
 
@@ -488,14 +489,15 @@ class FingerprintScanner : AppCompatActivity() {
         val qualityScore =
             mxFingerAlg.getQualityScore(latestBTImage, bmp.width, bmp.height)
         updateProgress(qualityScore.toDouble())
-        if (qualityScore < 50) {
+        if (qualityScore < 15) {
             showErrorToast(
                     "Quality too low. Scan again",
             )
-            logEvent(0, "quality less than 50", qualityScore)
+            logEvent(0, "quality less than 15", qualityScore)
             enrolBTFinger()
             return
         } else {
+            logEvent(1, "quality over 15", qualityScore)
             val isUnique = !isFingerPrintUnique(latestBTProfile, allFarmersFingerProfiles) ||
                     !isFingerPrintUniqueLegacy(latestBTProfile, allFarmersFingerProfiles)
 
@@ -573,15 +575,15 @@ class FingerprintScanner : AppCompatActivity() {
                 val qualityScore =
                     mxFingerAlg.getQualityScore(image.data, image.width, image.height)
                 updateProgress(qualityScore.toDouble())
-                if (qualityScore < 50) {
+                if (qualityScore < 15) {
                     showErrorToast(
                         "Quality too low. Scan again",
                     )
-                    logEvent(0, "quality less than 50", qualityScore)
+                    logEvent(0, "quality less than 15", qualityScore)
                     matchFinger(true)
                     return@execute
                 } else {
-
+                    logEvent(1, "quality over 15", qualityScore)
                 }
                 showFingerImage(image)
                 //step 1 get finger feature
@@ -754,7 +756,7 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.progressBar.setProgressPercentage(perc, true)
 
-            if (perc >= 50.0) {
+            if (perc >= 15.0) {
                 binding.progressBar.setBackgroundDrawableColor(Color.parseColor("#D5C6F6DB"))
                 binding.progressBar.setBackgroundTextColor(Color.parseColor("#2B9D5C"))
                 binding.progressBar.setProgressDrawableColor(Color.parseColor("#2B9D5C"))
