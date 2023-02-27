@@ -31,7 +31,6 @@ import com.mardillu.multiscanner.R
 import com.mardillu.multiscanner.databinding.ActivityFingerScannerBinding
 import com.mardillu.multiscanner.databinding.DialogDeviceListBinding
 import com.mardillu.multiscanner.databinding.ItemBluetoothDeviceBinding
-import com.mardillu.multiscanner.ui.fingerprint.bluetooth.BluetoothReaderService
 import com.mardillu.multiscanner.utils.*
 import com.mx.finger.alg.MxISOFingerAlg
 import com.mx.finger.api.msc.MxIsoMscFingerApiFactory
@@ -355,15 +354,15 @@ class FingerprintScanner : AppCompatActivity() {
                 val qualityScore =
                     mxFingerAlg.getQualityScore(image.data, image.width, image.height)
                 updateProgress(qualityScore.toDouble())
-                if (qualityScore < 15) {
+                if (qualityScore < 30) {
                     showErrorToast(
                         "Quality too low. Scan again",
                     )
-                    logEvent(0, "quality less than 15", qualityScore)
+                    logEvent(0, "quality less than 30", qualityScore)
                     enrolFinger(index)
                     return@execute
                 } else {
-                    logEvent(1, "quality over 15", qualityScore)
+                    logEvent(1, "quality over 30", qualityScore)
                 }
 
                 //step 1 extract finger feature
@@ -440,15 +439,15 @@ class FingerprintScanner : AppCompatActivity() {
         val qualityScore =
             mxFingerAlg.getQualityScore(latestBTImage, bmp.width, bmp.height)
         updateProgress(qualityScore.toDouble())
-        if (qualityScore < 15) {
+        if (qualityScore < 30) {
             showErrorToast(
                     "Quality too low. Scan again",
             )
-            logEvent(0, "quality less than 15", qualityScore)
+            logEvent(0, "quality less than 30", qualityScore)
             enrolBTFinger()
             return
         } else {
-            logEvent(1, "quality over 15", qualityScore)
+            logEvent(1, "quality over 30", qualityScore)
             val isUnique = !isFingerPrintUnique(latestBTProfile, allFarmersFingerProfiles) ||
                     !isFingerPrintUniqueLegacy(latestBTProfile, allFarmersFingerProfiles)
 
@@ -489,15 +488,15 @@ class FingerprintScanner : AppCompatActivity() {
         val qualityScore =
             mxFingerAlg.getQualityScore(latestBTImage, bmp.width, bmp.height)
         updateProgress(qualityScore.toDouble())
-        if (qualityScore < 15) {
+        if (qualityScore < 30) {
             showErrorToast(
                     "Quality too low. Scan again",
             )
-            logEvent(0, "quality less than 15", qualityScore)
+            logEvent(0, "quality less than 30", qualityScore)
             enrolBTFinger()
             return
         } else {
-            logEvent(1, "quality over 15", qualityScore)
+            logEvent(1, "quality over 30", qualityScore)
             val isUnique = !isFingerPrintUnique(latestBTProfile, allFarmersFingerProfiles) ||
                     !isFingerPrintUniqueLegacy(latestBTProfile, allFarmersFingerProfiles)
 
@@ -575,15 +574,15 @@ class FingerprintScanner : AppCompatActivity() {
                 val qualityScore =
                     mxFingerAlg.getQualityScore(image.data, image.width, image.height)
                 updateProgress(qualityScore.toDouble())
-                if (qualityScore < 15) {
+                if (qualityScore < 30) {
                     showErrorToast(
                         "Quality too low. Scan again",
                     )
-                    logEvent(0, "quality less than 15", qualityScore)
+                    logEvent(0, "quality less than 30", qualityScore)
                     matchFinger(true)
                     return@execute
                 } else {
-                    logEvent(1, "quality over 15", qualityScore)
+                    logEvent(1, "quality over 30", qualityScore)
                 }
                 showFingerImage(image)
                 //step 1 get finger feature
@@ -756,7 +755,7 @@ class FingerprintScanner : AppCompatActivity() {
         runOnUiThread {
             binding.progressBar.setProgressPercentage(perc, true)
 
-            if (perc >= 15.0) {
+            if (perc >= 30.0) {
                 binding.progressBar.setBackgroundDrawableColor(Color.parseColor("#D5C6F6DB"))
                 binding.progressBar.setBackgroundTextColor(Color.parseColor("#2B9D5C"))
                 binding.progressBar.setProgressDrawableColor(Color.parseColor("#2B9D5C"))
@@ -956,40 +955,6 @@ class FingerprintScanner : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         asyncBluetoothReader!!.start()
-    }
-
-    // The Handler that gets information back from the BluetoothChatService
-    @SuppressLint("HandlerLeak")
-    private val mHandler: Handler = object : Handler() {
-        override fun handleMessage(msg: Message) {
-            when (msg.what) {
-                MESSAGE_STATE_CHANGE -> when (msg.arg1) {
-                    BluetoothReaderService.STATE_CONNECTED -> {
-                        Log.d("TAG", "handleMessage: MESSAGE_STATE_CHANGE STATE_CONNECTED")
-                        //enrolFinger(0)
-
-                    }
-                    BluetoothReaderService.STATE_CONNECTING -> {
-                        Log.d("TAG", "handleMessage: MESSAGE_STATE_CHANGE STATE_CONNECTING")
-                    }
-                    BluetoothReaderService.STATE_LISTEN, BluetoothReaderService.STATE_NONE -> {
-                        Log.d("TAG", "handleMessage: MESSAGE_STATE_CHANGE STATE_LISTEN STATE_NONE")
-                    }
-                }
-                MESSAGE_WRITE -> {
-                    Log.d("TAG", "handleMessage: MESSAGE_WRITE")
-                }
-                MESSAGE_READ -> {
-                    Log.d("TAG", "handleMessage: MESSAGE_READ")
-                }
-                MESSAGE_DEVICE_NAME -> {
-                    Log.d("TAG", "handleMessage: MESSAGE_DEVICE_NAME")
-                }
-                MESSAGE_TOAST -> {
-                    Log.d("TAG", "handleMessage: MESSAGE_TOAST")
-                }
-            }
-        }
     }
 
     private fun initBluetoothListeners() {
