@@ -26,6 +26,7 @@ import com.fpreader.fpcore.FPFormat
 import com.fpreader.fpcore.FPMatch
 import com.fpreader.fpdevice.AsyncBluetoothReader
 import com.fpreader.fpdevice.BluetoothReader
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.mardillu.multiscanner.R
 import com.mardillu.multiscanner.databinding.ActivityFingerScannerBinding
 import com.mardillu.multiscanner.databinding.DialogDeviceListBinding
@@ -44,6 +45,7 @@ import kotlin.concurrent.schedule
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.analytics.ktx.logEvent
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.FirebaseApp
 
 
 class FingerprintScanner : AppCompatActivity() {
@@ -65,7 +67,7 @@ class FingerprintScanner : AppCompatActivity() {
     private var fingerIndex = 0
     var lfdEnabled = false
     val compatibilityMode = true
-    private val firebaseAnalytics = Firebase.analytics
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
     private val pid = System.currentTimeMillis()
 
     var latestBTImage: ByteArray? = null
@@ -80,6 +82,9 @@ class FingerprintScanner : AppCompatActivity() {
         binding = ActivityFingerScannerBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        FirebaseApp.initializeApp(this)
+        firebaseAnalytics = Firebase.analytics
 
         val fingerFactory = MxIsoMscFingerApiFactory(application)
         mxMscBigFingerApi = fingerFactory.api
