@@ -21,6 +21,7 @@ import com.mardillu.multiscanner.databinding.DialogOcrGuideBinding
 import com.mardillu.multiscanner.utils.EXTRA_OCR_IMAGE_LOCATION
 import com.mardillu.multiscanner.utils.EXTRA_OCR_IMAGE_NAME
 import com.mardillu.multiscanner.utils.EXTRA_OCR_SCAN_RESULT
+import com.mardillu.multiscanner.utils.EXTRA_SCANNER_RESULT
 import com.mardillu.multiscanner.utils.EXTRA_SCAN_TYPE
 import com.mardillu.multiscanner.utils.PREF_SHOW_GUIDE_DIALOG
 import com.mardillu.multiscanner.utils.RESULT_SCAN_SUCCESS
@@ -95,11 +96,11 @@ class OpticalScanner : AppCompatActivity() {
                     when (result.resultCode) {
                         RESULT_OK -> {
                             val data = result.data
-                            val scanResult = data?.getStringExtra("scanner_result")
-                            intent.putExtra("scanner_result", scanResult)
+                            val scanResult = data?.getStringExtra(EXTRA_SCANNER_RESULT)
+                            intent.putExtra(EXTRA_SCANNER_RESULT, scanResult)
                         }
                         else -> {
-                            intent.putExtra("scanner_result", "")
+                            intent.putExtra(EXTRA_SCANNER_RESULT, "")
                         }
                     }
                     setResult(RESULT_OK, resultIntent)
@@ -113,13 +114,12 @@ class OpticalScanner : AppCompatActivity() {
                         //updateUITextDetected(url)
                     }
                 })
+
+                updateUIDetectingText()
+                setCameraListeners()
+                showGuideDialog()
             }
         }
-
-        updateUIDetectingText()
-        setCameraListeners()
-        showGuideDialog()
-        //startAidedInputCountDown()
     }
 
     private fun startAidedInputCountDown(){

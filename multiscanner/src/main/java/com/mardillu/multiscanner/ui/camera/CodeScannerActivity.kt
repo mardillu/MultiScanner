@@ -12,6 +12,7 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuItemCompat
 import com.mardillu.multiscanner.R
+import com.mardillu.multiscanner.utils.EXTRA_SCANNER_RESULT
 import me.dm7.barcodescanner.zbar.Result
 import me.dm7.barcodescanner.zbar.ZBarScannerView
 
@@ -117,7 +118,7 @@ class CodeScannerActivity : AppCompatActivity(), ZBarScannerView.ResultHandler {
         }
         Log.d("scanner_result", rawResult.contents)
         val intent = Intent()
-        intent.putExtra("scanner_result", rawResult.contents)
+        intent.putExtra(EXTRA_SCANNER_RESULT, rawResult.contents)
         setResult(RESULT_OK, intent)
         finish()
     }
