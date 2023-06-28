@@ -28,6 +28,12 @@
         android:hardwareAccelerated="true"
         android:theme="@style/Theme.ScannerTheme">
         <activity
+            android:name=".ui.camera.CodeScannerActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.ScannerTheme"
+            android:exported="false">
+        </activity>
+        <activity
             android:name=".ui.camera.OpticalScanner"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.ScannerTheme"
