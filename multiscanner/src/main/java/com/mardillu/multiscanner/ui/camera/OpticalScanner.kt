@@ -50,41 +50,6 @@ class OpticalScanner : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityOcrScannerBinding.inflate(LayoutInflater.from(this))
-        setContentView(binding.root)
-
-        sp = PreferenceManager.getDefaultSharedPreferences(this)
-        editor = sp.edit()
-
-        if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "onCreate: Unable to init openCV")
-        }
-
-        binding.rescanScale.setOnClickListener {
-            updateUIDetectingText()
-            //showAid()
-        }
-
-        binding.completeAction.setOnClickListener {
-            confirmAndFinish()
-        }
-
-        binding.imgClose.setOnClickListener {
-            finish()
-        }
-
-        binding.quantityEdit.addTextChangedListener(textChangedListener)
-
-        binding.detectWeight.setOnClickListener {
-            binding.cameraView.takePicture()
-            binding.textResult.text = "Weight scanned"
-            binding.textPrompts.text = ""
-            binding.rescanScale.show()
-            binding.detectWeight.hide()
-            binding.imgFreeze.show()
-            updateProgress(50.0)
-            showAid()
-        }
 
         when (val scanType = intent.getIntExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_BARCODE)) {
             SCAN_TYPE_BARCODE,
@@ -109,6 +74,41 @@ class OpticalScanner : AppCompatActivity() {
                 scanBarcode.launch(intent)
             }
             SCAN_TYPE_OCR -> {
+                binding = ActivityOcrScannerBinding.inflate(LayoutInflater.from(this))
+                setContentView(binding.root)
+
+                sp = PreferenceManager.getDefaultSharedPreferences(this)
+                editor = sp.edit()
+
+                if (!OpenCVLoader.initDebug()) {
+                    Log.d(TAG, "onCreate: Unable to init openCV")
+                }
+
+                binding.rescanScale.setOnClickListener {
+                    updateUIDetectingText()
+                    //showAid()
+                }
+
+                binding.completeAction.setOnClickListener {
+                    confirmAndFinish()
+                }
+
+                binding.imgClose.setOnClickListener {
+                    finish()
+                }
+
+                binding.quantityEdit.addTextChangedListener(textChangedListener)
+
+                binding.detectWeight.setOnClickListener {
+                    binding.cameraView.takePicture()
+                    binding.textResult.text = "Weight scanned"
+                    binding.textPrompts.text = ""
+                    binding.rescanScale.show()
+                    binding.detectWeight.hide()
+                    binding.imgFreeze.show()
+                    updateProgress(50.0)
+                    showAid()
+                }
                 binding.cameraView.addFrameProcessor(CameraFrameProcessors.OCRProcessor(this@OpticalScanner) { string ->
                     string?.let { url ->
                         //updateUITextDetected(url)
