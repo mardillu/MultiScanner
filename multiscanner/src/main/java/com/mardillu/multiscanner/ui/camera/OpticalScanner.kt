@@ -174,12 +174,17 @@ class OpticalScanner : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        binding.cameraView.open()
+        if (::binding.isInitialized){
+            binding.cameraView.open()
+        }
+        
     }
 
     override fun onPause() {
         super.onPause()
-        binding.cameraView.close()
+         if (::binding.isInitialized){
+            binding.cameraView.close()
+         }
     }
 
     private fun onResult(result: String?) {
