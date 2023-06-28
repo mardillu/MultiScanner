@@ -82,8 +82,8 @@ class FingerprintScanner : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        FirebaseApp.initializeApp(this)
-        firebaseAnalytics = Firebase.analytics
+//        FirebaseApp.initializeApp(this)
+//        firebaseAnalytics = Firebase.analytics
 
         val fingerFactory = MxIsoMscFingerApiFactory(application)
         mxMscBigFingerApi = fingerFactory.api
@@ -292,11 +292,8 @@ class FingerprintScanner : AppCompatActivity() {
             enrolFinger(0)
         }
     }
-    var testCounter = 0
+
     private fun enrolFinger(index: Int) {
-//        if(builder.isShowing){
-//            builder.dismiss()
-//        }
         if (executor.isShutdown){
             return
         }
@@ -305,8 +302,9 @@ class FingerprintScanner : AppCompatActivity() {
 
             if (index != 0){
                 showPromptLeftThumb()
-                Thread.sleep(2000)
             }
+
+            Thread.sleep(30000)
 
             //showbinding.progressBarDialog("Please press finger ")
             try {
@@ -412,6 +410,7 @@ class FingerprintScanner : AppCompatActivity() {
     }
 
     private fun logEvent(result: Int, reason: String, score: Int = -1) {
+        if(1==1) return
         firebaseAnalytics.logEvent("fingerprint_scan") {
             param("scan_type", scanType.toString())
             param("pid", pid)

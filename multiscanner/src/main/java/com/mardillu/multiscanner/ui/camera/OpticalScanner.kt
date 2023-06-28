@@ -11,16 +11,30 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
+import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.mardillu.multiscanner.R
 import com.mardillu.multiscanner.databinding.ActivityOcrScannerBinding
 import com.mardillu.multiscanner.databinding.DialogOcrGuideBinding
-import com.mardillu.multiscanner.utils.*
+import com.mardillu.multiscanner.utils.EXTRA_OCR_IMAGE_LOCATION
+import com.mardillu.multiscanner.utils.EXTRA_OCR_IMAGE_NAME
+import com.mardillu.multiscanner.utils.EXTRA_OCR_SCAN_RESULT
+import com.mardillu.multiscanner.utils.EXTRA_SCAN_TYPE
+import com.mardillu.multiscanner.utils.PREF_SHOW_GUIDE_DIALOG
+import com.mardillu.multiscanner.utils.RESULT_SCAN_SUCCESS
+import com.mardillu.multiscanner.utils.SCAN_TYPE_BARCODE
+import com.mardillu.multiscanner.utils.SCAN_TYPE_OCR
+import com.mardillu.multiscanner.utils.SCAN_TYPE_QR_CODE
+import com.mardillu.multiscanner.utils.createImageFile
+import com.mardillu.multiscanner.utils.hide
+import com.mardillu.multiscanner.utils.show
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.PictureResult
 import com.otaliastudios.cameraview.VideoResult
 import org.opencv.android.OpenCVLoader
-import java.util.*
+import java.util.Objects
 
 
 class OpticalScanner : AppCompatActivity() {
@@ -71,16 +85,27 @@ class OpticalScanner : AppCompatActivity() {
             showAid()
         }
 
-        //binding.cameraView.filter = MultiFilter(Filters.BLACK_AND_WHITE.newInstance(), Filters.CONTRAST.newInstance(),)
-
-        when (intent.getIntExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_BARCODE)) {
+        when (val scanType = intent.getIntExtra(EXTRA_SCAN_TYPE, SCAN_TYPE_BARCODE)) {
             SCAN_TYPE_BARCODE,
             SCAN_TYPE_QR_CODE -> {
-//                binding.cameraView.addFrameProcessor(CameraFrameProcessors.BarcodeProcessor { string ->
-//                    string?.let { url ->
-//                        onResult(url)
-//                    }
-//                })
+                val intent = Intent(this, CodeScannerActivity::class.java)
+                intent.putExtra("type", if(scanType == SCAN_TYPE_BARCODE) "1" else "2")
+                val scanBarcode = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+                    val resultIntent = Intent()
+                    when (result.resultCode) {
+                        RESULT_OK -> {
+                            val data = result.data
+                            val scanResult = data?.getStringExtra("scanner_result")
+                            intent.putExtra("scanner_result", scanResult)
+                        }
+                        else -> {
+                            intent.putExtra("scanner_result", "")
+                        }
+                    }
+                    setResult(RESULT_OK, resultIntent)
+                    finish()
+                }
+                scanBarcode.launch(intent)
             }
             SCAN_TYPE_OCR -> {
                 binding.cameraView.addFrameProcessor(CameraFrameProcessors.OCRProcessor(this@OpticalScanner) { string ->

@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MultiScanner</string>
+    <string name="flash_on">Flash On</string>
+    <string name="flash_off">Flash Off</string>
+    <string name="auto_focus_on">Autofocus On</string>
+    <string name="auto_focus_off">Autofocus Off</string>
 </resources>
