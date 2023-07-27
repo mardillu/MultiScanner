@@ -62,10 +62,10 @@ class OpticalScanner : AppCompatActivity() {
                         RESULT_OK -> {
                             val data = result.data
                             val scanResult = data?.getStringExtra(EXTRA_SCANNER_RESULT)
-                            intent.putExtra(EXTRA_SCANNER_RESULT, scanResult)
+                            resultIntent.putExtra(EXTRA_SCANNER_RESULT, scanResult)
                         }
                         else -> {
-                            intent.putExtra(EXTRA_SCANNER_RESULT, "")
+                            resultIntent.putExtra(EXTRA_SCANNER_RESULT, "")
                         }
                     }
                     setResult(RESULT_OK, resultIntent)
@@ -174,12 +174,17 @@ class OpticalScanner : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        binding.cameraView.open()
+        if (::binding.isInitialized){
+            binding.cameraView.open()
+        }
+        
     }
 
     override fun onPause() {
         super.onPause()
-        binding.cameraView.close()
+         if (::binding.isInitialized){
+            binding.cameraView.close()
+         }
     }
 
     private fun onResult(result: String?) {
