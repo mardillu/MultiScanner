@@ -3,21 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item android:id="@+id/connect_new_device"
-        android:title="Connect New Bluetooth Device"
+        android:title="@string/connect_new_bluetooth_device"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/use_inbuilt_reader"
-        android:title="Use On-Device Scanner"
+        android:title="@string/use_on_device_scanner"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/use_bluetooth_reader"
-        android:title="Use Bluetooth Scanner"
+        android:title="@string/use_bluetooth_scanner"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/close"
-        android:title="Close"
+        android:title="@string/close"
         app:showAsAction="always" />
 </menu>

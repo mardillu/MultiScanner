@@ -26,7 +26,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            android:text="Menu"
+            android:text="@string/menu"
             android:layout_marginStart="8dp"
             android:textStyle="bold"/>
     </LinearLayout>
@@ -57,14 +57,14 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textStyle="bold"
-            android:text="Right thumb scanning"/>
+            android:text="@string/right_thumb_scanning"/>
 
         <TextView
             android:id="@+id/prompt_body"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:text="Scan farmer thumb to verify farmer"/>
+            android:text="@string/scan_farmer_thumb_to_verify_farmer"/>
     </LinearLayout>
 
 
@@ -151,7 +151,7 @@
             android:layout_gravity="center_horizontal"
             android:textStyle="bold"
             android:layout_marginTop="10dp"
-            android:text="Press the centre of your right thumb on the sensor, then lift it off when the progress turns green"/>
+            android:text="@string/press_the_centre_of_your_right_thumb_on_the_sensor_then_lift_it_off_when_the_progress_turns_green"/>
     </LinearLayout>
 
     <LinearLayout
@@ -166,7 +166,7 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:textAllCaps="false"
-            android:text="Complete Verification"
+            android:text="@string/complete_verification"
             android:backgroundTint="@color/primary_button"
             android:textColor="@color/button_text"
             android:textStyle="bold"

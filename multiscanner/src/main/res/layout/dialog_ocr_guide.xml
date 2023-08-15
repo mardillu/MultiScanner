@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Scan bag weight in 3 simple steps"
+            android:text="@string/scan_bag_weight_in_3_simple_steps"
             android:textColor="#000"
             android:textSize="20sp"
             android:layout_marginBottom="10dp"
@@ -21,7 +21,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1. Align the scale reading into the center of the RED rectangle then click 'Detect Weight'"
+            android:text="@string/_1_align_the_scale_reading_into_the_center_of_the_red_rectangle_then_click_detect_weight"
             android:textColor="#000"
             android:textSize="18sp"
             android:layout_marginBottom="10dp"/>
@@ -29,7 +29,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2. Type the scanned weight in the input field to confirm"
+            android:text="@string/_2_type_the_scanned_weight_in_the_input_field_to_confirm"
             android:textColor="#000"
             android:textSize="18sp"
             android:layout_marginBottom="10dp"/>
@@ -37,7 +37,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="3. Click 'Confirm Bag Weight' to finish"
+            android:text="@string/_3_click_confirm_bag_weight_to_finish"
             android:textColor="#000"
             android:textSize="18sp"
             android:layout_marginBottom="20dp"/>
@@ -46,7 +46,7 @@
             android:id="@+id/show_again"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Do not show this again"
+            android:text="@string/do_not_show_this_again"
             android:layout_marginBottom="16dp"/>
 
         <Button
@@ -54,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:textAllCaps="false"
-            android:text="Dismiss"
+            android:text="@string/dismiss"
             android:textColor="#2B9D5C"
             android:background="@drawable/bg_rounded_corners_outline" />
     </LinearLayout>

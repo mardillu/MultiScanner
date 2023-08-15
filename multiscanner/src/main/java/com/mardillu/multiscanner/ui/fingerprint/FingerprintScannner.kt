@@ -313,10 +313,7 @@ class FingerprintScanner : AppCompatActivity() {
                     mxMscBigFingerApi.getFingerImageBig(TIME_OUT)
                 if (!result.isSuccess) {
                     showErrorToast(
-                        """
-                                Scan failed. 
-                                Try again
-                                """.trimIndent(),
+                        getString(R.string.scan_failed_try_again).trimIndent(),
                     )
                     enrolFinger(index)
                     return@execute
@@ -334,7 +331,7 @@ class FingerprintScanner : AppCompatActivity() {
                     )
                     if (i != 0) {
                         showErrorToast(
-                            "LFD Error. Try again",
+                            getString(R.string.lfd_error_try_again),
                         )
                         logEvent(0, "LFD init Error")
                         enrolFinger(index)
@@ -342,7 +339,7 @@ class FingerprintScanner : AppCompatActivity() {
                     }
                     /*result 1 mean real finger*/if (lfdDetectResult[0] == 0) {
                         showErrorToast(
-                            "LFD Error, no finger detected. Try again",
+                            getString(R.string.lfd_error_no_finger_detected_try_again),
                         )
                         logEvent(0, "LFD Error, no finger detected")
                         enrolFinger(index)
@@ -354,7 +351,7 @@ class FingerprintScanner : AppCompatActivity() {
                 updateProgress(qualityScore.toDouble())
                 if (qualityScore < 30) {
                     showErrorToast(
-                        "Quality too low. Scan again",
+                        getString(R.string.quality_too_low_scan_again),
                     )
                     logEvent(0, "quality less than 30", qualityScore)
                     enrolFinger(index)
@@ -372,7 +369,7 @@ class FingerprintScanner : AppCompatActivity() {
                 )
                 if (profile == null) {
                     showErrorToast(
-                        "Enrollment failed. Try again",
+                        getString(R.string.enrollment_failed_try_again),
                     )
                     logEvent(0, "could not extract profile from image")
                     enrolFinger(index)
@@ -381,7 +378,7 @@ class FingerprintScanner : AppCompatActivity() {
                     if (!isFingerPrintUniqueLegacy(profile, allFarmersFingerProfiles) ||
                         !isFingerPrintUnique(profile, allFarmersFingerProfiles)) {
                         showErrorToast(
-                                "Looks like this finger has been scanned already. Please scan a different finger",
+                            getString(R.string.looks_like_this_finger_has_been_scanned_already_please_scan_a_different_finger),
                         )
                         logEvent(0, "Thumb already scanned")
                         enrolFinger(index)
@@ -390,14 +387,14 @@ class FingerprintScanner : AppCompatActivity() {
                     featureBufferEnroll[index] = profile
                     if (index == 0) {
                         showSuccessToast(
-                            "Right thumb captured successfully",
+                            getString(R.string.right_thumb_captured_successfully),
                         )
                         allFarmersFingerProfiles.add(profile)
                         logEvent(1, "Right thumb scanned")
                         enrolFinger(1)
                     } else {
                         showSuccessToast(
-                            "Enrollment complete",
+                            getString(R.string.enrollment_complete),
                         )
                         logEvent(1, "Left thumb scanned")
                         enableActionButton()
@@ -440,7 +437,7 @@ class FingerprintScanner : AppCompatActivity() {
         updateProgress(qualityScore.toDouble())
         if (qualityScore < 30) {
             showErrorToast(
-                    "Quality too low. Scan again",
+                getString(R.string.quality_too_low_scan_again),
             )
             logEvent(0, "quality less than 30", qualityScore)
             enrolBTFinger()
@@ -452,7 +449,7 @@ class FingerprintScanner : AppCompatActivity() {
 
             if (isUnique) {
                 showErrorToast(
-                        "Looks like this finger has been scanned already. Please scan a different finger",
+                    getString(R.string.looks_like_this_finger_has_been_scanned_already_please_scan_a_different_finger),
                 )
                 logEvent(0, "Thumb already scanned")
                 enrolBTFinger()
@@ -462,13 +459,13 @@ class FingerprintScanner : AppCompatActivity() {
             featureBufferEnroll[fingerIndex] = latestBTProfile
             if (fingerIndex >= NUM_FINGERS_TO_SCAN){
                 showSuccessToast(
-                        "Enrollment complete",
+                    getString(R.string.enrollment_complete),
                 )
                 logEvent(1, "Left thumb scanned")
                 enableActionButton()
             } else {
                 showSuccessToast(
-                        "Right thumb captured successfully",
+                    getString(R.string.right_thumb_captured_successfully),
                 )
                 logEvent(1, "Right thumb scanned")
                 allFarmersFingerProfiles.add(latestBTProfile!!)
@@ -489,7 +486,7 @@ class FingerprintScanner : AppCompatActivity() {
         updateProgress(qualityScore.toDouble())
         if (qualityScore < 30) {
             showErrorToast(
-                    "Quality too low. Scan again",
+                getString(R.string.quality_too_low_scan_again),
             )
             logEvent(0, "quality less than 30", qualityScore)
             enrolBTFinger()
@@ -501,13 +498,13 @@ class FingerprintScanner : AppCompatActivity() {
 
             if (isUnique) {
                 showSuccessToast(
-                        "Fingerprint matched found",
+                    getString(R.string.fingerprint_matched_found),
                 )
                 logEvent(1, "Match found")
                 enableActionButton()
             } else {
                 showErrorToast(
-                        "Match failed. Try again",
+                    getString(R.string.match_failed_try_again),
                 )
                 logEvent(0, "Match failed")
                 enrolBTFinger()
@@ -533,10 +530,7 @@ class FingerprintScanner : AppCompatActivity() {
                     mxMscBigFingerApi.getFingerImageBig(TIME_OUT)
                 if (!result.isSuccess) {
                     showErrorToast(
-                        """
-                                Scan failed. 
-                                Try again
-                                """.trimIndent(),
+                        getString(R.string.scan_failed_try_again).trimIndent(),
                         )
                     matchFinger(true)
                     return@execute
@@ -555,7 +549,7 @@ class FingerprintScanner : AppCompatActivity() {
                     )
                     if (i != 0) {
                         showErrorToast(
-                            "LFD Error, try again",
+                            getString(R.string.lfd_error_try_again),
                         )
                         logEvent(0, "LFD init Error")
                         matchFinger(true)
@@ -563,7 +557,7 @@ class FingerprintScanner : AppCompatActivity() {
                     }
                     /*result 1 mean real finger*/if (lfdDetectResult[0] == 0) {
                         showErrorToast(
-                            "LFD Error, no finger detected. Try again",
+                            getString(R.string.lfd_error_no_finger_detected_try_again),
                             )
                         logEvent(0, "LFD Error, no finger detected")
                         matchFinger(true)
@@ -575,7 +569,7 @@ class FingerprintScanner : AppCompatActivity() {
                 updateProgress(qualityScore.toDouble())
                 if (qualityScore < 30) {
                     showErrorToast(
-                        "Quality too low. Scan again",
+                        getString(R.string.quality_too_low_scan_again),
                     )
                     logEvent(0, "quality less than 30", qualityScore)
                     matchFinger(true)
@@ -593,7 +587,7 @@ class FingerprintScanner : AppCompatActivity() {
                     )
                 if (featureBufferMatch == null) {
                     showErrorToast(
-                        "Extract failed. Try again",
+                        getString(R.string.extract_failed_try_again),
                     )
                     logEvent(0, "could not extract profile from image")
                     matchFinger(true)
@@ -604,13 +598,13 @@ class FingerprintScanner : AppCompatActivity() {
                         !isFingerPrintUnique(featureBufferMatch!!, featureBufferEnroll)
                 if (match) {
                     showSuccessToast(
-                        "Fingerprint matched found",
+                        getString(R.string.fingerprint_matched_found),
                     )
                     logEvent(1, "Match found")
                     enableActionButton()
                 } else {
                     showErrorToast(
-                        "Match failed. Try again",
+                        getString(R.string.match_failed_try_again),
                     )
                     logEvent(0, "Match failed")
                     matchFinger(true)
@@ -770,37 +764,39 @@ class FingerprintScanner : AppCompatActivity() {
 
     private fun showPromptRightThumb(){
         runOnUiThread {
-            binding.promptBody.text = "Scan farmer thumb to enrol fingerprint"
-            binding.promptHead.text = "Scan RIGHT thumb"
-            binding.promptSubBody.text = "Press the centre of your RIGHT thumb on the sensor, then lift it off when the progress turns green"
-            binding.secondaryPromptHead.text = "Scan RIGHT thumb..."
+            binding.promptBody.text = getString(R.string.scan_farmer_thumb_to_enrol_fingerprint)
+            binding.promptHead.text = getString(R.string.scan_right_thumb)
+            binding.promptSubBody.text = getString(R.string.press_the_centre_of_your_right_thumb_on_the_sensor_then_lift_it_off_when_the_progress_turns_green)
+            binding.secondaryPromptHead.text = getString(R.string.scan_right_thumb)
         }
     }
 
     private fun showPromptLeftThumb(){
         runOnUiThread {
-            binding.promptBody.text = "Scan farmer thumb to enrol fingerprint"
-            binding.promptHead.text = "Scan LEFT thumb"
-            binding.promptSubBody.text = "Press the centre of your LEFT thumb on the sensor, then lift it off when the progress turns green"
-            binding.secondaryPromptHead.text = "Scan LEFT thumb..."
+            binding.promptBody.text = getString(R.string.scan_farmer_thumb_to_enrol_fingerprint)
+            binding.promptHead.text = getString(R.string.scan_left_thumb)
+            binding.promptSubBody.text =
+                getString(R.string.press_the_centre_of_your_left_thumb_on_the_sensor_then_lift_it_off_when_the_progress_turns_green)
+            binding.secondaryPromptHead.text = getString(R.string.scan_left_thumb)
         }
     }
 
     private fun showPromptNeutralFinger(){
         runOnUiThread {
-            binding.promptBody.text = "Scan farmer thumb to verify farmer"
-            binding.promptHead.text = "Scan farmer thumb"
-            binding.promptSubBody.text = "Press the centre of your thumb on the sensor, then lift it off when the progress turns green"
-            binding.secondaryPromptHead.text = "Scan farmer thumb"
+            binding.promptBody.text = getString(R.string.scan_farmer_thumb_to_verify_farmer)
+            binding.promptHead.text = getString(R.string.scan_farmer_thumb)
+            binding.promptSubBody.text =
+                getString(R.string.press_the_centre_of_your_thumb_on_the_sensor_then_lift_it_off_when_the_progress_turns_green)
+            binding.secondaryPromptHead.text = getString(R.string.scan_farmer_thumb)
         }
     }
 
     private fun enableActionButton(){
         runOnUiThread {
             if (scanType == SCAN_TYPE_FINGERPRINT_MATCH) {
-                binding.completeAction.text = "Complete Verification"
+                binding.completeAction.text = getString(R.string.complete_verification)
             } else {
-                binding.completeAction.text = "Complete Enrolment"
+                binding.completeAction.text = getString(R.string.complete_enrolment)
             }
 
             binding.completeAction.isEnabled = true
@@ -810,9 +806,9 @@ class FingerprintScanner : AppCompatActivity() {
     private fun disableActionButton(){
         runOnUiThread {
             if (scanType == SCAN_TYPE_FINGERPRINT_MATCH) {
-                binding.completeAction.text = "Complete Verification"
+                binding.completeAction.text = getString(R.string.complete_verification)
             } else {
-                binding.completeAction.text = "Complete Enrolment"
+                binding.completeAction.text = getString(R.string.complete_enrolment)
             }
 
             binding.completeAction.isEnabled = false
@@ -877,7 +873,8 @@ class FingerprintScanner : AppCompatActivity() {
                 //bluetoothBinding.progressBar.hide()
             }
         } else {
-            Toast.makeText(this@FingerprintScanner, "No Bluetooth devices found", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@FingerprintScanner,
+                getString(R.string.no_bluetooth_devices_found), Toast.LENGTH_LONG).show()
             doDiscovery()
         }
     }
@@ -896,7 +893,7 @@ class FingerprintScanner : AppCompatActivity() {
 
     @SuppressLint("MissingPermission")
     private fun doDiscovery() {
-        bluetoothBinding.notifications.text = "Scanning for new devices..."
+        bluetoothBinding.notifications.text = getString(R.string.scanning_for_new_devices)
         // If we're already discovering, stop it
         if (mBtAdapter!!.isDiscovering) {
             mBtAdapter!!.cancelDiscovery()
@@ -944,7 +941,7 @@ class FingerprintScanner : AppCompatActivity() {
                 // When discovery is finished, change the Activity title
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED == action) {
                 bluetoothBinding.progressBar.hide()
-                bluetoothBinding.notifications.text = "Select Bluetooth device"
+                bluetoothBinding.notifications.text = getString(R.string.select_bluetooth_device)
                 showBluetoothListDialog()
             }
         }
@@ -969,7 +966,7 @@ class FingerprintScanner : AppCompatActivity() {
                     BluetoothReader.STATE_CONNECTING -> {
                         Log.d("TAG", "handleMessage: STATE_CONNECTING")
                         showSuccessToast(
-                                "Connecting to device",
+                            getString(R.string.connecting_to_device),
                         )
                     }
                     BluetoothReader.STATE_LISTEN, BluetoothReader.STATE_NONE -> {
@@ -981,7 +978,7 @@ class FingerprintScanner : AppCompatActivity() {
 
             override fun onBluetoothStateDevice(devicename: String) {
                 showSuccessToast(
-                        "Connected to: $devicename",
+                    getString(R.string.connected_to, devicename),
                 )
             }
 
@@ -990,13 +987,13 @@ class FingerprintScanner : AppCompatActivity() {
                     BluetoothReader.MSG_UNABLE -> {
                         Log.d("TAG", "onBluetoothStateLost: BluetoothReader.MSG_UNABLE")
                         showErrorToast(
-                                "Unable to connect to bluetooth device",
+                            getString(R.string.unable_to_connect_to_bluetooth_device),
                         )
                     }
                     BluetoothReader.MSG_LOST -> {
                         Log.d("TAG", "onBluetoothStateLost: BluetoothReader.MSG_LOST")
                         showErrorToast(
-                                "Bluetooth device disconnected",
+                            getString(R.string.bluetooth_device_disconnected),
                         )
                     }
                 }

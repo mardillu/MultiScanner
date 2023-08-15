@@ -9,7 +9,7 @@
         android:id="@+id/notifications"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Scanning for new devices..."
+        android:text="@string/scanning_for_new_devices"
         android:textColor="#000"
         android:gravity="center_vertical"
         android:paddingEnd="10dp"

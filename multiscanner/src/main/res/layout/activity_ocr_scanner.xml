@@ -23,7 +23,7 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_centerVertical="true"
-            android:text="Scan weighting scale"/>
+            android:text="@string/scan_weighting_scale"/>
 
         <ImageView
             android:id="@+id/img_close"
@@ -51,7 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:text="Align the scale reading into the center of the camera preview then click 'Detect Weight'"/>
+            android:text="@string/align_the_scale_reading_into_the_center_of_the_camera_preview_then_click_detect_weight"/>
     </LinearLayout>
 
     <androidx.cardview.widget.CardView
@@ -121,7 +121,7 @@
         android:layout_marginTop="16dp"
         android:paddingHorizontal="16dp"
         android:textAllCaps="false"
-        android:text="Detect Weight"
+        android:text="@string/detect_weight"
         android:textStyle="bold"
         android:textColor="#2B9D5C"
         android:layout_below="@+id/card_view"
@@ -178,7 +178,7 @@
             android:id="@+id/manual_input_txv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Type the weight to confirm"
+            android:text="@string/type_the_weight_to_confirm"
             android:textColor="#000"
             android:gravity="center_vertical"/>
 
@@ -187,7 +187,7 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="10dp"
-            android:hint="Type scale reading"
+            android:hint="@string/type_scale_reading"
             android:paddingHorizontal="10dp"
             android:imeOptions="actionDone"
             android:inputType="phone"
@@ -210,7 +210,7 @@
             android:layout_height="48dp"
             android:layout_marginBottom="16dp"
             android:textAllCaps="false"
-            android:text="Rescan The Scale"
+            android:text="@string/rescan_the_scale"
             android:textStyle="bold"
             android:textColor="#2B9D5C"
             android:background="@drawable/bg_rounded_corners_outline"
@@ -221,7 +221,7 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:textAllCaps="false"
-            android:text="Confirm Bag Weight"
+            android:text="@string/confirm_bag_weight"
             android:backgroundTint="@color/primary_button"
             android:textColor="@color/button_text"
             android:textStyle="bold"

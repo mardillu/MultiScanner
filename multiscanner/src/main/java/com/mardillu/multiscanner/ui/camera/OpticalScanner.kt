@@ -101,7 +101,7 @@ class OpticalScanner : AppCompatActivity() {
 
                 binding.detectWeight.setOnClickListener {
                     binding.cameraView.takePicture()
-                    binding.textResult.text = "Weight scanned"
+                    binding.textResult.text = getString(R.string.weight_scanned)
                     binding.textPrompts.text = ""
                     binding.rescanScale.show()
                     binding.detectWeight.hide()
@@ -201,7 +201,7 @@ class OpticalScanner : AppCompatActivity() {
         detectedCount += 1
         binding.apply {
             textResult.text = "${result?.toDouble()?.div(100.0)}Kg"
-            textPrompts.text = "Quantity in bag"
+            textPrompts.text = getString(R.string.quantity_in_bag)
             rescanScale.show()
             completeAction.isEnabled = true
             updateProgress(100.0)
@@ -213,7 +213,7 @@ class OpticalScanner : AppCompatActivity() {
             return
         }
         if (result.isEmpty()){
-            binding.textResult.text = "Weight scanned"
+            binding.textResult.text = getString(R.string.weight_scanned)
             binding.textPrompts.text = ""
             updateProgress(50.0)
             binding.completeAction.isEnabled = false
@@ -221,7 +221,7 @@ class OpticalScanner : AppCompatActivity() {
         }
         binding.apply {
             textResult.text = "${result}Kg"
-            textPrompts.text = "Quantity in bag"
+            textPrompts.text = getString(R.string.quantity_in_bag)
             rescanScale.show()
             completeAction.isEnabled = true
             updateProgress(100.0)
@@ -233,7 +233,7 @@ class OpticalScanner : AppCompatActivity() {
             binding.quantityEdit.removeTextChangedListener(textChangedListener)
             binding.quantityEdit.setText("")
             textResult.text = ""
-            textPrompts.text = "Click 'Detect Weight' to start detecting..."
+            textPrompts.text = getString(R.string.click_detect_weight_to_start_detecting)
             rescanScale.hide()
             completeAction.isEnabled = false
             imgFreeze.hide()
