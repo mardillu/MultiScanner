@@ -109,11 +109,11 @@ class OpticalScanner : AppCompatActivity() {
                     updateProgress(50.0)
                     showAid()
                 }
-                binding.cameraView.addFrameProcessor(CameraFrameProcessors.OCRProcessor(this@OpticalScanner) { string ->
-                    string?.let { url ->
-                        //updateUITextDetected(url)
-                    }
-                })
+//                binding.cameraView.addFrameProcessor(CameraFrameProcessors.OCRProcessor(this@OpticalScanner) { string ->
+//                    string?.let { url ->
+//                        //updateUITextDetected(url)
+//                    }
+//                })
 
                 updateUIDetectingText()
                 setCameraListeners()
