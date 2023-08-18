@@ -10,160 +10,168 @@
     android:animateLayoutChanges="true"
     android:background="#FFF">
 
-    <RelativeLayout
-        android:id="@+id/layout_close"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp">
-
-        <TextView
-            android:id="@+id/prompt_head"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_centerVertical="true"
-            android:text="@string/scan_weighting_scale"/>
-
-        <ImageView
-            android:id="@+id/img_close"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_outline_close_24"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:focusable="true"
-            android:clickable="true"/>
-
-    </RelativeLayout>
-
-
-    <LinearLayout
-        android:id="@+id/layout_header"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_below="@+id/layout_close"
-        android:layout_marginVertical="20dp">
-
-        <TextView
-            android:id="@+id/prompt_body"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:text="@string/align_the_scale_reading_into_the_center_of_the_camera_preview_then_click_detect_weight"/>
-    </LinearLayout>
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_view"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        app:cardCornerRadius="10dp"
-        app:cardPreventCornerOverlap="false"
-        android:layout_below="@+id/layout_header">
-
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:layout_above="@+id/bottom_bar"
+        android:layout_marginBottom="10dp">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-
-            <com.otaliastudios.cameraview.CameraView
-                android:id="@+id/cameraView"
+            <RelativeLayout
+                android:id="@+id/layout_close"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:background="@drawable/bg_fingerprint"
-                app:cameraPictureSizeMaxHeight="200"
-                app:cameraFrameProcessingMaxHeight="200"
-                app:cameraGestureTap="autoFocus"
-                app:cameraGestureLongTap="autoFocus"
-                app:cameraGesturePinch="zoom"
-                app:cameraGestureScrollHorizontal="exposureCorrection"
-                app:cameraEngine="camera2"
-                app:cameraPreviewFrameRateExact="false"
-                app:cameraFacing="back"
-                app:cameraHdr="on"
-                app:cameraWhiteBalance="auto"
-                app:cameraMode="picture"
-                app:cameraPictureFormat="jpeg"
-                app:cameraRequestPermissions="true"
-                app:cameraSnapshotMaxHeight="200"
-                app:cameraPlaySounds="false"
-                app:cameraExperimental="true"
-                >
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp">
 
-            </com.otaliastudios.cameraview.CameraView>
+                <TextView
+                    android:id="@+id/prompt_head"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_centerVertical="true"
+                    android:text="@string/scan_weighting_scale"/>
+
+                <ImageView
+                    android:id="@+id/img_close"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_outline_close_24"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:focusable="true"
+                    android:clickable="true"/>
+
+            </RelativeLayout>
 
             <LinearLayout
-                android:id="@+id/guide"
-                android:layout_width="265dp"
-                android:layout_height="130dp"
+                android:id="@+id/layout_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_centerInParent="true"
-                android:background="@drawable/bg_camera_guide">
+                android:layout_below="@+id/layout_close"
+                android:layout_marginVertical="20dp">
 
+                <TextView
+                    android:id="@+id/prompt_body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:text="@string/align_the_scale_reading_into_the_center_of_the_camera_preview_then_click_detect_weight"/>
             </LinearLayout>
 
-            <ImageView
-                android:id="@+id/img_freeze"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_view"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
-                android:layout_centerInParent="true"
-                android:visibility="gone"
-                android:scaleType="centerCrop"
-                />
+                app:cardCornerRadius="10dp"
+                app:cardPreventCornerOverlap="false"
+                android:layout_below="@+id/layout_header">
 
-        </RelativeLayout>
-    </androidx.cardview.widget.CardView>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-    <Button
-        android:id="@+id/detect_weight"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:layout_marginTop="16dp"
-        android:paddingHorizontal="16dp"
-        android:textAllCaps="false"
-        android:text="@string/detect_weight"
-        android:textStyle="bold"
-        android:textColor="#2B9D5C"
-        android:layout_below="@+id/card_view"
-        android:layout_alignParentEnd="true"
-        android:background="@drawable/bg_rounded_corners_outline" />
+                    <com.otaliastudios.cameraview.CameraView
+                        android:id="@+id/cameraView"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:background="@drawable/bg_fingerprint"
+                        app:cameraPictureSizeMaxHeight="200"
+                        app:cameraFrameProcessingMaxHeight="200"
+                        app:cameraGestureTap="autoFocus"
+                        app:cameraGestureLongTap="autoFocus"
+                        app:cameraGesturePinch="zoom"
+                        app:cameraGestureScrollHorizontal="exposureCorrection"
+                        app:cameraEngine="camera2"
+                        app:cameraPreviewFrameRateExact="false"
+                        app:cameraFacing="back"
+                        app:cameraHdr="on"
+                        app:cameraWhiteBalance="auto"
+                        app:cameraMode="picture"
+                        app:cameraPictureFormat="jpeg"
+                        app:cameraRequestPermissions="true"
+                        app:cameraSnapshotMaxHeight="200"
+                        app:cameraPlaySounds="false"
+                        app:cameraExperimental="true"
+                        >
 
-    <TextView
-        android:id="@+id/textResult"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:textSize="18sp"
-        android:gravity="center"
-        android:layout_gravity="center_horizontal"
-        android:textStyle="bold"
-        android:layout_below="@+id/detect_weight"
-        android:text="" />
+                    </com.otaliastudios.cameraview.CameraView>
 
-    <TextView
-        android:id="@+id/text_prompts"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:gravity="center"
-        android:layout_gravity="center_horizontal"
-        android:layout_below="@+id/textResult"
-        android:text="Detecting weight..." />
+                    <LinearLayout
+                        android:id="@+id/guide"
+                        android:layout_width="265dp"
+                        android:layout_height="130dp"
+                        android:layout_centerInParent="true"
+                        android:background="@drawable/bg_camera_guide"
+                        android:orientation="vertical">
 
-    <com.mackhartley.roundedprogressbar.RoundedProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="match_parent"
-        android:layout_height="16dp"
-        app:rpbBackgroundColor="#D5C6F6DB"
-        app:rpbBackgroundTextColor="#2B9D5C"
-        app:rpbCornerRadius="5dp"
-        app:rpbProgressColor="#2B9D5C"
-        app:rpbProgressTextColor="#D5C6F6DB"
-        app:rpbTextPadding="12dp"
-        app:rpbProgress="100"
-        app:rpbTextSize="14sp"
-        android:layout_marginTop="18dp"
-        android:layout_below="@+id/text_prompts"/>
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/img_freeze"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_centerInParent="true"
+                        android:visibility="gone"
+                        android:scaleType="centerCrop"
+                        />
+
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/detect_weight"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_marginTop="16dp"
+                android:paddingHorizontal="16dp"
+                android:textAllCaps="false"
+                android:text="@string/detect_weight"
+                android:textStyle="bold"
+                android:textColor="#2B9D5C"
+                android:layout_below="@+id/card_view"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/bg_rounded_corners_outline" />
+
+            <TextView
+                android:id="@+id/textResult"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textSize="18sp"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:textStyle="bold"
+                android:layout_below="@+id/detect_weight"
+                android:text="" />
+
+            <TextView
+                android:id="@+id/text_prompts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:layout_below="@+id/textResult"
+                android:text="Detecting weight..." />
+
+            <com.mackhartley.roundedprogressbar.RoundedProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="match_parent"
+                android:layout_height="16dp"
+                app:rpbBackgroundColor="#D5C6F6DB"
+                app:rpbBackgroundTextColor="#2B9D5C"
+                app:rpbCornerRadius="5dp"
+                app:rpbProgressColor="#2B9D5C"
+                app:rpbProgressTextColor="#D5C6F6DB"
+                app:rpbTextPadding="12dp"
+                app:rpbProgress="100"
+                app:rpbTextSize="14sp"
+                android:layout_marginTop="18dp"
+                android:layout_below="@+id/text_prompts"/>
 
     <LinearLayout
         android:id="@+id/layout_manual_input"
@@ -182,23 +190,27 @@
             android:textColor="#000"
             android:gravity="center_vertical"/>
 
-        <EditText
-            android:id="@+id/quantity_edit"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="10dp"
-            android:hint="@string/type_scale_reading"
-            android:paddingHorizontal="10dp"
-            android:imeOptions="actionDone"
-            android:inputType="phone"
-            android:maxLines="1"
-            android:textColor="#000"
-            android:textColorHint="#BEBEBE"
-            android:background="@drawable/bg_rounded_corners_grey_outline"
-            android:textSize="15sp" />
-    </LinearLayout>
+                <EditText
+                    android:id="@+id/quantity_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="10dp"
+                    android:hint="@string/type_scale_reading"
+                    android:paddingHorizontal="10dp"
+                    android:imeOptions="actionDone"
+                    android:inputType="phone"
+                    android:maxLines="1"
+                    android:textColor="#000"
+                    android:textColorHint="#BEBEBE"
+                    android:background="@drawable/bg_rounded_corners_grey_outline"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+        </RelativeLayout>
+    </ScrollView>
 
     <LinearLayout
+        android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -228,5 +240,4 @@
             android:background="@drawable/bg_rounded_corners"
             android:enabled="false"/>
     </LinearLayout>
-
 </RelativeLayout>

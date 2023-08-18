@@ -6,8 +6,8 @@
 6
 7    <uses-sdk
 8        android:minSdkVersion="21"
-8-->D:\Users\ezeki\AndroidStudioProjects\MultiScanner\opencv\src\main\AndroidManifest.xml
+8-->/Users/mardillu/AndroidStudioProjects/MultiScanner/opencv/src/main/AndroidManifest.xml
 9        android:targetSdkVersion="33" />
-9-->D:\Users\ezeki\AndroidStudioProjects\MultiScanner\opencv\src\main\AndroidManifest.xml
+9-->/Users/mardillu/AndroidStudioProjects/MultiScanner/opencv/src/main/AndroidManifest.xml
 10
 11</manifest>
