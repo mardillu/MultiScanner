@@ -6,26 +6,16 @@ plugins {
 }
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 35
 
     defaultConfig {
         applicationId "com.mardillu.multiscanner"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 35
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-//        ndk{
-//            abiFilters "armeabi-v7a"
-//        }
-    }
-
-    sourceSets { main { jni.srcDirs = ['src/main/jni', 'src/main/jniLibs/'] } }
-    externalNativeBuild {
-//        ndkBuild {
-//            path file('../../OpenCV-android-sdk/sdk/native/jni/OpenCV.mk')
-//        }
     }
 
     buildTypes {
@@ -34,20 +24,21 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
     packagingOptions {
-        pickFirst 'lib/arm64-v8a/libFingerLiveApi.so'
-        pickFirst 'lib/armeabi-v7a/libFingerLiveApi.so'
+        jniLibs {
+            pickFirsts += ['lib/arm64-v8a/libFingerLiveApi.so', 'lib/armeabi-v7a/libFingerLiveApi.so']
+        }
     }
-    kotlinOptions {
-        jvmTarget = '11'
-    }
+
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
+    namespace 'com.mardillu.multiscanner'
+}
+
+kotlin {
+    jvmToolchain (17)
 }
 
 dependencies {
