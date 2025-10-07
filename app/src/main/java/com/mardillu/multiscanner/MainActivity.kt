@@ -16,6 +16,9 @@ import com.mardillu.multiscanner.ui.camera.OpticalScanner
 import com.mardillu.multiscanner.ui.fingerprint.FingerprintScanner
 import com.mardillu.multiscanner.utils.*
 import java.nio.charset.Charset
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.get
+import androidx.core.graphics.set
 
 
 class MainActivity : AppCompatActivity() {
@@ -69,7 +72,7 @@ class MainActivity : AppCompatActivity() {
         val width = src.width
         val height = src.height
         // create output bitmap
-        val bmOut = Bitmap.createBitmap(width, height, src.config)
+        val bmOut = createBitmap(width, height, src.config?:Bitmap.Config.ARGB_8888)
         // color information
         var A: Int
         var R: Int
@@ -81,7 +84,7 @@ class MainActivity : AppCompatActivity() {
         for (x in 0 until width) {
             for (y in 0 until height) {
                 // get pixel color
-                pixel = src.getPixel(x, y)
+                pixel = src[x, y]
                 A = Color.alpha(pixel)
                 R = Color.red(pixel)
                 G = Color.green(pixel)
@@ -91,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                 // use 128 as threshold, above -> white, below -> black
                 gray = if (gray > 128) 0 else 255
                 // set new pixel color to output bitmap
-                bmOut.setPixel(x, y, Color.argb(A, gray, gray, gray))
+                bmOut[x, y] = Color.argb(A, gray, gray, gray)
             }
         }
         return bmOut
