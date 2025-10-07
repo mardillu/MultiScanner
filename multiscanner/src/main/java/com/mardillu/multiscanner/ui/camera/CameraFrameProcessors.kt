@@ -28,6 +28,9 @@ import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import java.nio.ByteBuffer
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.get
+import androidx.core.graphics.set
 
 
 /**
@@ -112,7 +115,7 @@ class CameraFrameProcessors {
             val width = src.width
             val height = src.height
             // create output bitmap
-            val bmOut = Bitmap.createBitmap(width, height, src.config)
+            val bmOut = createBitmap(width, height, src.config ?: Bitmap.Config.ARGB_8888)
             // color information
             var A: Int
             var R: Int
@@ -124,7 +127,7 @@ class CameraFrameProcessors {
             for (x in 0 until width) {
                 for (y in 0 until height) {
                     // get pixel color
-                    pixel = src.getPixel(x, y)
+                    pixel = src[x, y]
                     A = Color.alpha(pixel)
                     R = Color.red(pixel)
                     G = Color.green(pixel)
@@ -134,7 +137,7 @@ class CameraFrameProcessors {
                     // use 128 as threshold, above -> white, below -> black
                     gray = if (gray > 128) 0 else 255
                     // set new pixel color to output bitmap
-                    bmOut.setPixel(x, y, Color.argb(A, gray, gray, gray))
+                    bmOut[x, y] = Color.argb(A, gray, gray, gray)
                 }
             }
             return bmOut
