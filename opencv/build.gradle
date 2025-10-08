@@ -21,14 +21,3 @@ android {
     }
     namespace 'org.opencv'
 }
-
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
-                artifactId = 'opencv'
-            }
-        }
-    }
-}
