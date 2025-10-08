@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
 
 android {
     compileSdkVersion 33
@@ -19,4 +20,15 @@ android {
         buildConfig = true
     }
     namespace 'org.opencv'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                artifactId = 'opencv'
+            }
+        }
+    }
 }
