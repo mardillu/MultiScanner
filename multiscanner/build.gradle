@@ -64,3 +64,17 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'me.dm7.barcodescanner:zbar:1.9.8'
 }
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.github.mardillu.MultiScanner'
+            artifactId = 'multiscanner'
+            version = '3.0.9'
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
+}

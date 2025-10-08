@@ -21,3 +21,17 @@ android {
     }
     namespace 'org.opencv'
 }
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.github.mardillu.MultiScanner'
+            artifactId = 'opencv'
+            version = '3.0.9'
+
+            afterEvaluate {
+                from components.findByName('release')
+            }
+        }
+    }
+}
