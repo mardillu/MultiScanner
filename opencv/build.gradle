@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
 
 android {
     compileSdkVersion 33
@@ -19,4 +20,18 @@ android {
         buildConfig = true
     }
     namespace 'org.opencv'
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.github.mardillu.MultiScanner'
+            artifactId = 'opencv'
+            version = '3.0.9'
+
+            afterEvaluate {
+                from components.findByName('release')
+            }
+        }
+    }
 }

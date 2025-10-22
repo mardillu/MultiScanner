@@ -9,7 +9,7 @@ android {
     compileSdkVersion 35
 
     defaultConfig {
-        applicationId "com.mardillu.multiscanner"
+        applicationId "com.mardillu.multiscanner.app"
         minSdkVersion 21
         targetSdkVersion 35
         versionCode 1
@@ -34,7 +34,7 @@ android {
         viewBinding = true
         buildConfig = true
     }
-    namespace 'com.mardillu.multiscanner'
+    namespace 'com.mardillu.multiscanner.app'
 }
 
 kotlin {

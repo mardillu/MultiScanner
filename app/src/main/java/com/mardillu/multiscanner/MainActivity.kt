@@ -11,14 +11,32 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.mardillu.multiscanner.databinding.ActivityMainBinding
-import com.mardillu.multiscanner.ui.camera.OpticalScanner
-import com.mardillu.multiscanner.ui.fingerprint.FingerprintScanner
-import com.mardillu.multiscanner.utils.*
-import java.nio.charset.Charset
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.get
 import androidx.core.graphics.set
+import com.mardillu.multiscanner.app.databinding.ActivityMainBinding
+import com.mardillu.multiscanner.ui.camera.OpticalScanner
+import com.mardillu.multiscanner.ui.fingerprint.FingerprintScanner
+import com.mardillu.multiscanner.utils.EXTRA_FARMERS_FINGERPRINT_PROFILES
+import com.mardillu.multiscanner.utils.EXTRA_FINGERPRINT_SOURCE
+import com.mardillu.multiscanner.utils.EXTRA_LEFT_THUMB_PROFILE
+import com.mardillu.multiscanner.utils.EXTRA_OCR_IMAGE_LOCATION
+import com.mardillu.multiscanner.utils.EXTRA_OCR_IMAGE_NAME
+import com.mardillu.multiscanner.utils.EXTRA_OCR_SCAN_RESULT
+import com.mardillu.multiscanner.utils.EXTRA_RIGHT_THUMB_PROFILE
+import com.mardillu.multiscanner.utils.EXTRA_SCAN_TYPE
+import com.mardillu.multiscanner.utils.RESULT_ENROLMENT_FAILED
+import com.mardillu.multiscanner.utils.RESULT_ENROLMENT_SUCCESSFUL
+import com.mardillu.multiscanner.utils.RESULT_MATCH_FAILED
+import com.mardillu.multiscanner.utils.RESULT_MATCH_FOUND
+import com.mardillu.multiscanner.utils.RESULT_SCAN_FAILED
+import com.mardillu.multiscanner.utils.RESULT_SCAN_SUCCESS
+import com.mardillu.multiscanner.utils.SCAN_TYPE_BARCODE
+import com.mardillu.multiscanner.utils.SCAN_TYPE_FINGERPRINT_ENROL
+import com.mardillu.multiscanner.utils.SCAN_TYPE_FINGERPRINT_MATCH
+import com.mardillu.multiscanner.utils.SCAN_TYPE_OCR
+import com.mardillu.multiscanner.utils.SOURCE_EXTERNAL_BT_READER
+import com.mardillu.multiscanner.utils.toCustomArrayString
 
 
 class MainActivity : AppCompatActivity() {
