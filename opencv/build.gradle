@@ -20,6 +20,10 @@ android {
         buildConfig = true
     }
     namespace 'org.opencv'
+
+    publishing {
+        singleVariant("release")
+    }
 }
 
 publishing {
@@ -27,10 +31,10 @@ publishing {
         release(MavenPublication) {
             groupId = 'com.github.mardillu.MultiScanner'
             artifactId = 'opencv'
-            version = '3.0.9'
+            version = '3.0.10'
 
             afterEvaluate {
-                from components.findByName('release')
+                from components.release
             }
         }
     }

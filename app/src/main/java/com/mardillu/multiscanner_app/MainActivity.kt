@@ -1,4 +1,4 @@
-package com.mardillu.multiscanner
+package com.mardillu.multiscanner_app
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.get
 import androidx.core.graphics.set
-import com.mardillu.multiscanner.app.databinding.ActivityMainBinding
+import com.mardillu.multiscanner_app.databinding.ActivityMainBinding
 import com.mardillu.multiscanner.ui.camera.OpticalScanner
 import com.mardillu.multiscanner.ui.fingerprint.FingerprintScanner
 import com.mardillu.multiscanner.utils.EXTRA_FARMERS_FINGERPRINT_PROFILES

@@ -7,8 +7,12 @@ import android.graphics.ImageFormat.YUV_420_888
 import android.graphics.Matrix
 import android.media.Image
 import android.os.Build
-import android.renderscript.*
 import android.util.Log
+import android.graphics.BitmapFactory
+import android.graphics.Rect
+import android.graphics.YuvImage
+import android.graphics.ImageFormat.NV21
+import java.io.ByteArrayOutputStream
 import androidx.annotation.WorkerThread
 import androidx.core.text.isDigitsOnly
 import com.google.android.gms.tasks.Tasks
@@ -144,28 +148,16 @@ class CameraFrameProcessors {
         }
 
         private fun yuv420ToBitmap(image: Image, context: Context): Bitmap {
-            val rs = RenderScript.create(context)
-            val script = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs))
+            // Convert YUV_420_888 image to NV21 byte array
+            val nv21: ByteArray = image2byteArray(image)
 
-            // Refer the logic in a section below on how to convert a YUV_420_888 image
-            // to single channel flat 1D array. For sake of this example I'll abstract it
-            // as a method.
-            val yuvByteArray: ByteArray = image2byteArray(image)
-            val yuvType: Type.Builder = Type.Builder(rs, Element.U8(rs)).setX(yuvByteArray.size)
-            val `in` = Allocation.createTyped(rs, yuvType.create(), Allocation.USAGE_SCRIPT)
-            val rgbaType: Type.Builder = Type.Builder(rs, Element.RGBA_8888(rs))
-                .setX(image.width)
-                .setY(image.height)
-            val out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT)
-
-            // The allocations above "should" be cached if you are going to perform
-            // repeated conversion of YUV_420_888 to Bitmap.
-            `in`.copyFrom(yuvByteArray)
-            script.setInput(`in`)
-            script.forEach(out)
-            val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
-            out.copyTo(bitmap)
-            return bitmap
+            // Use YuvImage to convert NV21 to JPEG, then decode to Bitmap.
+            val yuvImage = YuvImage(nv21, NV21, image.width, image.height, null)
+            val outStream = ByteArrayOutputStream()
+            // Quality 100 to retain as much detail as possible for OCR
+            yuvImage.compressToJpeg(Rect(0, 0, image.width, image.height), 100, outStream)
+            val jpegBytes = outStream.toByteArray()
+            return BitmapFactory.decodeByteArray(jpegBytes, 0, jpegBytes.size)
         }
 
         private fun image2byteArray(image: Image): ByteArray {
